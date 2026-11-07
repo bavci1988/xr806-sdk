@@ -1,0 +1,5 @@
+CONFIG_PROJECT="demo/trv16_port"
+CONFIG_XIP=y
+CONFIG_OTA=y
+CONFIG_WLAN=y
+# CONFIG_BLE_FEATURE is not set
