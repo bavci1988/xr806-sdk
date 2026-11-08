@@ -58,5 +58,5 @@ jobs:
           YAML
           cd esphome-src
           python -m esphome config /tmp/stage7b-ci.yaml
-          python -m esphome compile /tmp/stage7b-ci.yaml
+          python -m esphome -v compile /tmp/stage7b-ci.yaml
           find /tmp -type f \( -name '*.img' -o -name 'firmware.bin' \) -print
