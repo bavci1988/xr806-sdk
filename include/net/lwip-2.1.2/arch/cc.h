@@ -35,6 +35,9 @@
 #undef LITTLE_ENDIAN
 #undef BIG_ENDIAN
 
+/* Newlib must establish its fixed-width typedefs before GCC stdint.h.
+ * GCC 13 can otherwise select long for int32_t while Newlib uses int. */
+#include <sys/time.h>
 #include <stddef.h>
 #include <stdint.h>
 #include "sys/defs.h"
