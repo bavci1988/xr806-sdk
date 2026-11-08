@@ -1,0 +1,100 @@
+name: XR806 Home Assistant-like container firmware build
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ci/abi-compat-audit]
+    paths: [.github/workflows/xr806-ha-container-build.yml]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    container:
+      image: ubuntu:24.04
+    timeout-minutes: 60
+    steps:
+      - name: Bootstrap container for GitHub Actions
+        run: |
+          apt-get update
+          DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends git ca-certificates python3 python3-pip python3-venv make gcc-arm-none-eabi libnewlib-arm-none-eabi libstdc++-arm-none-eabi-newlib
+      - uses: actions/checkout@v4
+        with:
+          ref: 963f6f74030bc2fdbf430e66092ca96f6a0c7a6c
+          path: sdk
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: bavci1988/esphome-xr806
+          ref: 83e85869a132ad0372331976271be07523c28bba
+          path: esphome-xr806
+          persist-credentials: false
+      - name: Install fork into isolated Python environment
+        run: |
+          python3 -m venv /opt/esphome-venv
+          /opt/esphome-venv/bin/python -m pip install -e ./esphome-xr806
+          arm-none-eabi-gcc --version
+      - name: Generate UART0 and interrupt test configurations
+        run: |
+          mkdir -p ci-tests
+          cat > ci-tests/xr806_trv16_uart0_lowpower_test.yaml <<'YAML'
+          esphome:
+            name: xr806-trv16-uart0-lp
+          xr806:
+            board: wxu
+            lowpower: true
+          uart:
+            id: mcu_uart
+            baud_rate: 115200
+            tx_pin: PB0
+            rx_pin: PB1
+            rx_buffer_size: 256
+            data_bits: 8
+            stop_bits: 1
+            parity: NONE
+          YAML
+          cat > ci-tests/xr806_irq_linkprobe.yaml <<'YAML'
+          esphome:
+            name: xr806-irq-linkprobe
+          xr806:
+            board: wxu
+          binary_sensor:
+            - platform: gpio
+              name: "WXU Test input"
+              use_interrupt: true
+              pin:
+                number: PA20
+                mode: INPUT_PULLUP
+          YAML
+      - name: Compile both firmwares using pre-provisioned private SDK
+        env:
+          XR806_SDK_SOURCE_DIR: ${{ github.workspace }}/sdk
+        run: |
+          set -euo pipefail
+          /opt/esphome-venv/bin/python -m esphome compile ci-tests/xr806_trv16_uart0_lowpower_test.yaml
+          /opt/esphome-venv/bin/python -m esphome compile ci-tests/xr806_irq_linkprobe.yaml
+      - name: Verify AWIH output and image consistency
+        run: |
+          set -euo pipefail
+          for name in xr806-trv16-uart0-lp xr806-irq-linkprobe; do
+            base="ci-tests/.esphome/build/$name"
+            fw="$base/.pioenvs/$name/firmware.bin"
+            img="$base/xr806/firmware/firmware.img"
+            test -s "$fw"
+            test -s "$img"
+            test "$(head -c 4 "$fw")" = AWIH
+            cmp "$fw" "$img"
+            sha256sum "$fw"
+          done
+      - name: Upload container-built firmware
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: xr806-ha-container-firmware
+          if-no-files-found: error
+          retention-days: 14
+          path: |
+            ci-tests/.esphome/build/xr806-trv16-uart0-lp/.pioenvs/xr806-trv16-uart0-lp/firmware.bin
+            ci-tests/.esphome/build/xr806-irq-linkprobe/.pioenvs/xr806-irq-linkprobe/firmware.bin
