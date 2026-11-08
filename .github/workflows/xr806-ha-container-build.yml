@@ -76,6 +76,8 @@ jobs:
           XR806_SDK_SOURCE_DIR: ${{ github.workspace }}/sdk
         run: |
           set -euo pipefail
+          export CC_DIR="$(dirname "$(command -v arm-none-eabi-gcc)")"
+          echo "Using ARM GCC toolchain: $CC_DIR"
           /opt/esphome-venv/bin/python -m esphome compile ci-tests/xr806_trv16_uart0_lowpower_test.yaml
           /opt/esphome-venv/bin/python -m esphome compile ci-tests/xr806_irq_linkprobe.yaml
       - name: Verify AWIH output and image consistency
