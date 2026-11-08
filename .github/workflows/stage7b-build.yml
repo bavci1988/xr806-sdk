@@ -53,6 +53,7 @@ jobs:
               wake_after_ms: 3000
               wake_pin: PA20
               wake_edge: falling
+              resume_marker_pb05: true
           YAML
           cd esphome-src
           python -m esphome config /tmp/stage7b-ci.yaml
