@@ -2,9 +2,6 @@ name: XR806 GCC8 vs GCC13 ABI comparison
 
 on:
   workflow_dispatch:
-  push:
-    branches: [ci/abi-compat-audit]
-    paths: [.github/workflows/xr806-abi-compare.yml]
 
 permissions:
   contents: read
