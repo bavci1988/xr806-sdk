@@ -23,7 +23,7 @@ jobs:
       - name: Check out pinned private XR806 SDK
         uses: actions/checkout@v4
         with:
-          ref: 8622a9612bbecc3c81659c197208876760a8d305
+          ref: 963f6f74030bc2fdbf430e66092ca96f6a0c7a6c
           path: sdk
           persist-credentials: false
 
@@ -59,7 +59,7 @@ jobs:
           set -euo pipefail
           SDK_DIR="$GITHUB_WORKSPACE/sdk"
           CACHE_PARENT="$HOME/.cache/esphome-xr806/dependencies/xr806_sdk"
-          SHA="8622a9612bbecc3c81659c197208876760a8d305"
+          SHA="963f6f74030bc2fdbf430e66092ca96f6a0c7a6c"
           test "$(git -C "$SDK_DIR" rev-parse HEAD)" = "$SHA"
           test -z "$(git -C "$SDK_DIR" status --porcelain --untracked-files=all)"
           mkdir -p "$CACHE_PARENT"
