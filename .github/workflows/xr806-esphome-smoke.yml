@@ -51,10 +51,10 @@ jobs:
             fi
             sleep $((attempt * 15))
           done
-          test "$(stat -c %s /tmp/arm-gcc.tgz)" -gt 50000000
-          tar -tzf /tmp/arm-gcc.tgz >/dev/null
+          test "$(stat -c %s /tmp/arm-gcc.tar.gz)" -gt 50000000
+          tar -tzf /tmp/arm-gcc.tar.gz >/dev/null
           mkdir -p "$RUNNER_TEMP/arm-gcc"
-          tar -xzf /tmp/arm-gcc.tgz -C "$RUNNER_TEMP/arm-gcc"
+          tar -xzf /tmp/arm-gcc.tar.gz -C "$RUNNER_TEMP/arm-gcc"
           CC_BIN="$(find "$RUNNER_TEMP/arm-gcc" -type f -name arm-none-eabi-gcc -print -quit)"
           if [[ -z "$CC_BIN" ]]; then
             echo "::error::arm-none-eabi-gcc not found in extracted archive"
