@@ -36,10 +36,18 @@ jobs:
 
       - name: Install ARM toolchain
         run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends gcc-arm-none-eabi libnewlib-arm-none-eabi libstdc++-arm-none-eabi-newlib
-          arm-none-eabi-gcc --version
-          echo "CC_DIR=$(dirname "$(command -v arm-none-eabi-gcc)")" >> "$GITHUB_ENV"
+          set -euo pipefail
+          # Match the GCC 8-2019-q3-update toolchain used by the working local WSL build.
+          # Ubuntu 24.04's newer newlib conflicts with the vendor lwIP fd_set typedef.
+          TOOLCHAIN_URL="https://developer.arm.com/-/media/Files/downloads/gnu-rm/8-2019q3/gcc-arm-none-eabi-8-2019-q3-update-linux.tar.bz2"
+          curl --fail --location --retry 3 --output /tmp/gcc-arm-none-eabi.tar.bz2 "$TOOLCHAIN_URL"
+          mkdir -p "$RUNNER_TEMP/arm-gcc"
+          tar -xjf /tmp/gcc-arm-none-eabi.tar.bz2 -C "$RUNNER_TEMP/arm-gcc"
+          CC_DIR="$RUNNER_TEMP/arm-gcc/gcc-arm-none-eabi-8-2019-q3-update/bin"
+          test -x "$CC_DIR/arm-none-eabi-gcc"
+          test -f "$RUNNER_TEMP/arm-gcc/gcc-arm-none-eabi-8-2019-q3-update/arm-none-eabi/include/c++/8.3.1/climits" || find "$RUNNER_TEMP/arm-gcc/gcc-arm-none-eabi-8-2019-q3-update" -name climits -print -quit
+          "$CC_DIR/arm-none-eabi-gcc" --version
+          echo "CC_DIR=$CC_DIR" >> "$GITHUB_ENV"
 
       - name: Install ESPHome Python dependencies
         run: |
