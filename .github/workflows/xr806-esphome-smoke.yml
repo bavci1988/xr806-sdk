@@ -65,6 +65,8 @@ jobs:
           test -x "$CC_BIN"
           "$CC_DIR/arm-none-eabi-gcc" --version
           echo "CC_DIR=$CC_DIR" >> "$GITHUB_ENV"
+          echo "$CC_DIR" >> "$GITHUB_PATH"
+          test -x "$CC_DIR/arm-none-eabi-g++"
 
       - name: Install ESPHome Python dependencies
         run: |
