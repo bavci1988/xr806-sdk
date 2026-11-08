@@ -118,11 +118,9 @@ jobs:
         run: |
           git -C esphome-src fetch --no-tags --depth=1 origin feature/tuya-low-power-v0
           git -C esphome-src log -1 FETCH_HEAD --format='PROTOCOL BRANCH SHA %H %s'
-          git -C esphome-src checkout FETCH_HEAD -- \
-            esphome/components/tuya \
-            esphome/components/uart/uart_component.h \
-            esphome/components/uart/uart_component_xr806.cpp \
-            esphome/components/uart/uart_component_xr806.h
+          # Keep the production-hardened XR806 UART transport from Stage 7b;
+          # overlay only MCU protocol files (including the CMD01 scanner).
+          git -C esphome-src checkout FETCH_HEAD -- esphome/components/tuya
           git -C esphome-src status --short
           cat > /tmp/stage7b-mcu-integration.yaml <<'YAML'
           esphome:
