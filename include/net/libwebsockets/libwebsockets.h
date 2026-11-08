@@ -755,7 +755,8 @@ struct lws;
  #include <sys/stat.h>
 #endif
 
-#if defined(LWS_HAVE_STDINT_H)
+#if defined(LWS_HAVE_STDINT_H) || defined(LWS_WITH_XRADIO)
+ /* XR806 toolchains provide stdint.h; avoid redefining uint32_t. */
  #include <stdint.h>
 #else
  #if defined(WIN32) || defined(_WIN32)

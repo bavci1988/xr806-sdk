@@ -95,7 +95,7 @@ static BME280_RETURN_FUNCTION_TYPE BME280_Init(struct bme280_t *bme280)
   * @note This function is used to enable bme280 and config the i2c.
   * @retval success return 0, else return 1.
   */
-s32 DRV_BME280_Enable(I2C_ID id, uint32_t i2c_clk_freq)
+int DRV_BME280_Enable(I2C_ID id, uint32_t i2c_clk_freq)
 {
 	BME280_I2cId = id;
 	BME280_I2cClkFreq = i2c_clk_freq;

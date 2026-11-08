@@ -488,10 +488,17 @@ typedef struct ipv6_mreq {
 #define FD_ISSET(n,p) FDSETSAFEGET(n, (p)->fd_bits[((n)-LWIP_SOCKET_OFFSET)/8] &   (1 << (((n)-LWIP_SOCKET_OFFSET) & 7)))
 #define FD_ZERO(p)    memset((void*)(p), 0, sizeof(*(p)))
 
-typedef struct fd_set
+/* The vendor socket fd_set is a compact lwIP bitmap, unlike the Newlib
+ * fd_set introduced by newer ARM toolchains. Keep the lwIP type distinct
+ * instead of redefining Newlib's struct tag and typedef. */
+#if LWIP_XR_IMPL
+#define fd_set lwip_fd_set
+#endif
+
+typedef struct lwip_fd_set
 {
   unsigned char fd_bits [(FD_SETSIZE+7)/8];
-} fd_set;
+} lwip_fd_set;
 
 #elif FD_SETSIZE < (LWIP_SOCKET_OFFSET + MEMP_NUM_NETCONN)
 #error "external FD_SETSIZE too small for number of sockets"
