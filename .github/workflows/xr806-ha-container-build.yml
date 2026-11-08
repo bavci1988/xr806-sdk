@@ -15,6 +15,9 @@ jobs:
     container:
       image: ubuntu:24.04
     timeout-minutes: 60
+    defaults:
+      run:
+        shell: bash
     steps:
       - name: Bootstrap container for GitHub Actions
         run: |
