@@ -110,16 +110,20 @@ jobs:
               print("PASS opt-in XR806 production coordinator AWIH:", path)
           PY
 
-      - name: Merge parallel Tuya autobaud branch locally and cross-compile contract
+      - name: Overlay parallel Tuya/autobaud and UART sources locally; cross-compile contract
         env:
           CC_DIR: /usr/bin
           XR806_SDK_SOURCE_DIR: ${{ github.workspace }}/vendor-sdk
           XR806_SDK_EXPECTED_COMMIT: 963f6f74030bc2fdbf430e66092ca96f6a0c7a6c
         run: |
-          git -C esphome-src fetch --no-tags origin feature/tuya-low-power-v0
-          git -C esphome-src -c user.name="CI Test" -c user.email="ci@example.invalid" \
-            merge --no-edit FETCH_HEAD
-          git -C esphome-src log -1 --format='LOCAL INTEGRATION SHA %H %s'
+          git -C esphome-src fetch --no-tags --depth=1 origin feature/tuya-low-power-v0
+          git -C esphome-src log -1 FETCH_HEAD --format='PROTOCOL BRANCH SHA %H %s'
+          git -C esphome-src checkout FETCH_HEAD -- \
+            esphome/components/tuya \
+            esphome/components/uart/uart_component.h \
+            esphome/components/uart/uart_component_xr806.cpp \
+            esphome/components/uart/uart_component_xr806.h
+          git -C esphome-src status --short
           cat > /tmp/stage7b-mcu-integration.yaml <<'YAML'
           esphome:
             name: xr806-mcu-integration
