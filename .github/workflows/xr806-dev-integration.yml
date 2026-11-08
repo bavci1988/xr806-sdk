@@ -30,11 +30,11 @@ jobs:
         run: |
           apt-get update
           DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends git ca-certificates python3 python3-pip python3-venv make gcc gcc-arm-none-eabi libnewlib-arm-none-eabi libstdc++-arm-none-eabi-newlib
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7.0.1
         with:
           path: sdk
           persist-credentials: false
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7.0.1
         with:
           repository: bavci1988/esphome-xr806
           ref: dev
@@ -120,7 +120,7 @@ jobs:
           done
       - name: Upload container-built firmware
         if: success()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: xr806-ha-container-firmware
           if-no-files-found: error
