@@ -24,7 +24,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          url="https://github.com/xpack-dev-tools/arm-none-eabi-gcc-xpack/releases/download/v8.3.1-1.1.1/xpack-arm-none-eabi-gcc-8.3.1-1.1.1-linux-x64.tar.gz"
+          url="https://github.com/xpack-dev-tools/arm-none-eabi-gcc-xpack/releases/download/v8.3.1-1.4/xpack-arm-none-eabi-gcc-8.3.1-1.4-linux-x64.tar.gz"
           curl --fail --location --retry 5 --retry-all-errors --retry-delay 8 --connect-timeout 20 --max-time 240 "$url" -o /tmp/gcc8.tar.gz
           mkdir -p "$RUNNER_TEMP/gcc8"
           tar -xzf /tmp/gcc8.tar.gz -C "$RUNNER_TEMP/gcc8"
