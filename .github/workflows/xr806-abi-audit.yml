@@ -1,0 +1,57 @@
+name: XR806 GCC13 ABI diagnostics
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - ci/abi-compat-audit
+    paths:
+      - .github/workflows/xr806-abi-audit.yml
+
+permissions:
+  contents: read
+
+jobs:
+  abi-audit:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install ARM compiler and Newlib
+        run: |
+          sudo apt-get update
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends gcc-arm-none-eabi libnewlib-arm-none-eabi
+      - name: Inspect ABI and fixed-width types
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p abi-report
+          {
+            arm-none-eabi-gcc --version
+            echo '--- Target ---'
+            arm-none-eabi-gcc -dumpmachine
+            echo '--- GCC predefined type macros (XR806 CPU flags) ---'
+            arm-none-eabi-gcc -mcpu=cortex-m33 -mthumb -mfloat-abi=softfp -dM -E -x c /dev/null | grep -E '__((U)?INT32_TYPE__|(U)?INTPTR_TYPE__|SIZEOF_(INT|LONG|POINTER)__|ARM_PCS|BYTE_ORDER__)' || true
+            echo '--- GCC stdint typedefs ---'
+            printf '#include <stdint.h>\n' | arm-none-eabi-gcc -mcpu=cortex-m33 -mthumb -mfloat-abi=softfp -E -x c - | grep -E 'typedef .* (u?int32_t);' | head -12 || true
+            echo '--- Newlib fixed-width typedefs ---'
+            grep -n -E 'typedef .* (u?int32_t)' /usr/include/newlib/sys/_stdint.h || true
+            echo '--- SDK type aliases ---'
+            grep -R -n -m 2 -E 'typedef .* (s32|u32);' include/driver include/kernel 2>/dev/null | head -40 || true
+          } | tee abi-report/diagnostics.txt
+          cat > abi-report/probe.c <<'EOF'
+          #include <sys/types.h>
+          #include <stdint.h>
+          _Static_assert(sizeof(int) == 4, "XR806 expects 32-bit int");
+          _Static_assert(sizeof(long) == 4, "XR806 expects 32-bit long");
+          _Static_assert(sizeof(void*) == 4, "XR806 expects 32-bit pointers");
+          _Static_assert(sizeof(int32_t) == 4, "int32_t must be 32-bit");
+          _Static_assert(sizeof(uint32_t) == 4, "uint32_t must be 32-bit");
+          int main(void) { return 0; }
+          EOF
+          arm-none-eabi-gcc -mcpu=cortex-m33 -mthumb -mfloat-abi=softfp -std=c11 -Wall -Wextra -Werror -fsyntax-only abi-report/probe.c
+          echo 'Size assertions passed; this does NOT establish binary ABI compatibility.' | tee -a abi-report/diagnostics.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: xr806-abi-diagnostics
+          path: abi-report/
+          retention-days: 30
