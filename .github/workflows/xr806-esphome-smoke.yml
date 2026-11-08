@@ -42,8 +42,14 @@ jobs:
           curl --fail --location --retry 3 --output /tmp/arm-gcc.tgz "$TOOLCHAIN_URL"
           mkdir -p "$RUNNER_TEMP/arm-gcc"
           tar -xzf /tmp/arm-gcc.tgz -C "$RUNNER_TEMP/arm-gcc"
-          CC_DIR="$RUNNER_TEMP/arm-gcc/xpack-arm-none-eabi-gcc-8.3.1-1.1/bin"
-          test -x "$CC_DIR/arm-none-eabi-gcc"
+          CC_BIN="$(find "$RUNNER_TEMP/arm-gcc" -type f -name arm-none-eabi-gcc -print -quit)"
+          if [[ -z "$CC_BIN" ]]; then
+            echo "::error::arm-none-eabi-gcc not found in extracted archive"
+            find "$RUNNER_TEMP/arm-gcc" -maxdepth 3 -type d
+            exit 1
+          fi
+          CC_DIR="$(dirname "$CC_BIN")"
+          test -x "$CC_BIN"
           "$CC_DIR/arm-none-eabi-gcc" --version
           echo "CC_DIR=$CC_DIR" >> "$GITHUB_ENV"
 
