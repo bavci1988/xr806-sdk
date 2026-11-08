@@ -103,7 +103,7 @@ CC_FLAGS += -DPLATFORM_XR806=1
 CC_FLAGS += -Wno-error=stringop-truncation -Wno-error=restrict
 
 # include config header for all c and cpp files
-CC_FLAGS += -include xr_config.h
+CC_FLAGS += -include sys/types.h -include xr_config.h
 
 CXX_FLAGS = $(CPU) -c $(DBG_FLAG) -fno-common -fmessage-length=0 \
 	-fno-exceptions -ffunction-sections -fdata-sections -fomit-frame-pointer \
@@ -117,7 +117,7 @@ CXX_FLAGS += -DPLATFORM_XR806=1
 CXX_FLAGS += -Wno-error=stringop-truncation -Wno-error=restrict
 
 # include config header for all c and cpp files
-CXX_FLAGS += -include xr_config.h -include climits
+CXX_FLAGS += -include sys/types.h -include xr_config.h -include climits
 
 LD_FLAGS = $(CPU) -Wl,--gc-sections --specs=nano.specs \
 	-Wl,-Map=$(basename $@).map,--cref
