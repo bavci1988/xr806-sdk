@@ -187,6 +187,9 @@ jobs:
               require_external_sync: true
           network:
           api:
+            listen_backlog: 1
+            max_connections: 2
+            max_send_queue: 4
           uart:
             id: uart_bus
             tx_pin: PB0
