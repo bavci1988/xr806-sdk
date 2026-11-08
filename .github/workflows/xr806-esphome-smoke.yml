@@ -37,15 +37,13 @@ jobs:
       - name: Install ARM toolchain
         run: |
           set -euo pipefail
-          # Match the GCC 8-2019-q3-update toolchain used by the working local WSL build.
-          # Ubuntu 24.04's newer newlib conflicts with the vendor lwIP fd_set typedef.
-          TOOLCHAIN_URL="https://developer.arm.com/-/media/Files/downloads/gnu-rm/8-2019q3/gcc-arm-none-eabi-8-2019-q3-update-linux.tar.bz2"
-          curl --fail --location --retry 3 --output /tmp/gcc-arm-none-eabi.tar.bz2 "$TOOLCHAIN_URL"
+          # Use a verified GCC 8.3.1 release asset; the old Arm CDN URL now returns 404.
+          TOOLCHAIN_URL="https://github.com/xpack-dev-tools/arm-none-eabi-gcc-xpack/releases/download/v8.3.1-1.1/xpack-arm-none-eabi-gcc-8.3.1-1.1-linux-x64.tgz"
+          curl --fail --location --retry 3 --output /tmp/arm-gcc.tgz "$TOOLCHAIN_URL"
           mkdir -p "$RUNNER_TEMP/arm-gcc"
-          tar -xjf /tmp/gcc-arm-none-eabi.tar.bz2 -C "$RUNNER_TEMP/arm-gcc"
-          CC_DIR="$RUNNER_TEMP/arm-gcc/gcc-arm-none-eabi-8-2019-q3-update/bin"
+          tar -xzf /tmp/arm-gcc.tgz -C "$RUNNER_TEMP/arm-gcc"
+          CC_DIR="$RUNNER_TEMP/arm-gcc/xpack-arm-none-eabi-gcc-8.3.1-1.1/bin"
           test -x "$CC_DIR/arm-none-eabi-gcc"
-          test -f "$RUNNER_TEMP/arm-gcc/gcc-arm-none-eabi-8-2019-q3-update/arm-none-eabi/include/c++/8.3.1/climits" || find "$RUNNER_TEMP/arm-gcc/gcc-arm-none-eabi-8-2019-q3-update" -name climits -print -quit
           "$CC_DIR/arm-none-eabi-gcc" --version
           echo "CC_DIR=$CC_DIR" >> "$GITHUB_ENV"
 
