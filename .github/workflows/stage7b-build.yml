@@ -109,3 +109,48 @@ jobs:
               assert path.read_bytes()[:4] == b"AWIH", path
               print("PASS opt-in XR806 production coordinator AWIH:", path)
           PY
+
+      - name: Merge parallel Tuya autobaud branch locally and cross-compile contract
+        env:
+          CC_DIR: /usr/bin
+          XR806_SDK_SOURCE_DIR: ${{ github.workspace }}/vendor-sdk
+          XR806_SDK_EXPECTED_COMMIT: 963f6f74030bc2fdbf430e66092ca96f6a0c7a6c
+        run: |
+          git -C esphome-src fetch --no-tags origin feature/tuya-low-power-v0
+          git -C esphome-src -c user.name="CI Test" -c user.email="ci@example.invalid" \
+            merge --no-edit FETCH_HEAD
+          git -C esphome-src log -1 --format='LOCAL INTEGRATION SHA %H %s'
+          cat > /tmp/stage7b-mcu-integration.yaml <<'YAML'
+          esphome:
+            name: xr806-mcu-integration
+          xr806:
+            board: wxu
+            lowpower: true
+            standby:
+              enabled: true
+              wake_after_ms: 3000
+              quiet_ms: 250
+              min_awake_ms: 5000
+              wake_pin: PA20
+              wake_edge: falling
+              require_external_sync: true
+          uart:
+            id: uart_bus
+            tx_pin: PB0
+            rx_pin: PB1
+            baud_rate: 115200
+          tuya:
+            id: tuya_mcu
+            uart_id: uart_bus
+            protocol: low_power_v0
+            auto_baud: true
+          YAML
+          cd esphome-src
+          python -m esphome config /tmp/stage7b-mcu-integration.yaml
+          python -m esphome -v compile /tmp/stage7b-mcu-integration.yaml
+          python - <<'PY'
+          from pathlib import Path
+          image=Path("/tmp/.esphome/build/xr806-mcu-integration/xr806/firmware/firmware.img")
+          assert image.is_file() and image.read_bytes()[:4] == b"AWIH"
+          print("PASS combined XR806 PM + Tuya CMD01 autobaud AWIH build:",image.stat().st_size)
+          PY
