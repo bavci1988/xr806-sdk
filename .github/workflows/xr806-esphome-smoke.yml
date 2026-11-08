@@ -8,6 +8,7 @@ on:
     paths:
       - .github/workflows/xr806-esphome-smoke.yml
       - ci/rebuild-trigger.txt
+      - include/net/lwip-2.1.2/lwip/sockets.h
   workflow_dispatch:
 
 permissions:
@@ -22,7 +23,7 @@ jobs:
       - name: Check out pinned private XR806 SDK
         uses: actions/checkout@v4
         with:
-          ref: daeb7f7a6c157a7fe83d59949bbbf4a4cc58616a
+          ref: 055653bb2f743cfad99d94c0d44e3c0ff0e5a33b
           path: sdk
           persist-credentials: false
 
@@ -78,7 +79,7 @@ jobs:
           set -euo pipefail
           SDK_DIR="$GITHUB_WORKSPACE/sdk"
           CACHE_PARENT="$HOME/.cache/esphome-xr806/dependencies/xr806_sdk"
-          SHA="daeb7f7a6c157a7fe83d59949bbbf4a4cc58616a"
+          SHA="055653bb2f743cfad99d94c0d44e3c0ff0e5a33b"
           test "$(git -C "$SDK_DIR" rev-parse HEAD)" = "$SHA"
           test -z "$(git -C "$SDK_DIR" status --porcelain --untracked-files=all)"
           mkdir -p "$CACHE_PARENT"
