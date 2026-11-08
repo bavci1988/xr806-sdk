@@ -76,3 +76,36 @@ jobs:
           path: /tmp/.esphome/build/xr806-stage7b-ci/.pioenvs/xr806-stage7b-ci/firmware.bin
           if-no-files-found: error
           retention-days: 7
+
+      - name: Cross-compile guarded production standby core (no transports)
+        env:
+          CC_DIR: /usr/bin
+          XR806_SDK_SOURCE_DIR: ${{ github.workspace }}/vendor-sdk
+          XR806_SDK_EXPECTED_COMMIT: 963f6f74030bc2fdbf430e66092ca96f6a0c7a6c
+        run: |
+          cat > /tmp/stage7b-production-ci.yaml <<'YAML'
+          esphome:
+            name: xr806-production-ci
+          xr806:
+            board: wxu
+            lowpower: true
+            standby:
+              enabled: true
+              wake_after_ms: 3000
+              quiet_ms: 250
+              min_awake_ms: 5000
+              wake_pin: PA20
+              wake_edge: falling
+              require_external_sync: false
+          YAML
+          cd esphome-src
+          python -m esphome config /tmp/stage7b-production-ci.yaml
+          python -m esphome -v compile /tmp/stage7b-production-ci.yaml
+          python - <<'PY'
+          from pathlib import Path
+          base = Path("/tmp/.esphome/build/xr806-production-ci")
+          for path in (base/"xr806/firmware/firmware.img", base/".pioenvs/xr806-production-ci/firmware.bin"):
+              assert path.is_file() and path.stat().st_size > 0, path
+              assert path.read_bytes()[:4] == b"AWIH", path
+              print("PASS opt-in XR806 production coordinator AWIH:", path)
+          PY
