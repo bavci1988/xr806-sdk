@@ -49,7 +49,7 @@ jobs:
           python3 -m venv /opt/esphome-venv
           /opt/esphome-venv/bin/python -m pip install -e ./esphome-xr806
           arm-none-eabi-gcc --version
-      - name: Generate UART0 and interrupt test configurations
+      - name: Generate UART0, interrupt and WLAN smoke configurations
         run: |
           mkdir -p ci-tests
           cat > ci-tests/xr806_trv16_uart0_lowpower_test.yaml <<'YAML'
@@ -81,7 +81,20 @@ jobs:
                 number: PA20
                 mode: INPUT_PULLUP
           YAML
-      - name: Compile both firmwares using pre-provisioned private SDK
+          cat > ci-tests/xr806_wlan_smoke.yaml <<'YAML'
+          esphome:
+            name: xr806-wlan-probe
+          xr806:
+            board: wxu
+            lowpower: true
+            wlan_smoke:
+              ssid: "XR806-CI-NO-REAL-NETWORK"
+              password: "test-only-not-secret"
+              power_save: true
+              dtim: 1
+              listen_interval: 8
+          YAML
+      - name: Compile three firmwares using pre-provisioned private SDK
         env:
           XR806_SDK_SOURCE_DIR: ${{ github.workspace }}/sdk
           XR806_SDK_EXPECTED_COMMIT: ${{ github.sha }}
@@ -91,10 +104,11 @@ jobs:
           echo "Using ARM GCC toolchain: $CC_DIR"
           /opt/esphome-venv/bin/python -m esphome compile ci-tests/xr806_trv16_uart0_lowpower_test.yaml
           /opt/esphome-venv/bin/python -m esphome compile ci-tests/xr806_irq_linkprobe.yaml
+          /opt/esphome-venv/bin/python -m esphome compile ci-tests/xr806_wlan_smoke.yaml
       - name: Verify AWIH output and image consistency
         run: |
           set -euo pipefail
-          for name in xr806-trv16-uart0-lp xr806-irq-linkprobe; do
+          for name in xr806-trv16-uart0-lp xr806-irq-linkprobe xr806-wlan-probe; do
             base="ci-tests/.esphome/build/$name"
             fw="$base/.pioenvs/$name/firmware.bin"
             img="$base/xr806/firmware/firmware.img"
@@ -114,3 +128,4 @@ jobs:
           path: |
             ci-tests/.esphome/build/xr806-trv16-uart0-lp/.pioenvs/xr806-trv16-uart0-lp/firmware.bin
             ci-tests/.esphome/build/xr806-irq-linkprobe/.pioenvs/xr806-irq-linkprobe/firmware.bin
+            ci-tests/.esphome/build/xr806-wlan-probe/.pioenvs/xr806-wlan-probe/firmware.bin
