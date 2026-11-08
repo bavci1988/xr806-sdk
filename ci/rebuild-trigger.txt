@@ -1,0 +1,1 @@
+ESPHome XR806 commit 611e243ae58fe1e6104087fad2b6b19719cde840
