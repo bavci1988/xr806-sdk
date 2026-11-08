@@ -84,6 +84,7 @@ jobs:
       - name: Compile both firmwares using pre-provisioned private SDK
         env:
           XR806_SDK_SOURCE_DIR: ${{ github.workspace }}/sdk
+          XR806_SDK_EXPECTED_COMMIT: ${{ github.sha }}
         run: |
           set -euo pipefail
           export CC_DIR="$(dirname "$(command -v arm-none-eabi-gcc)")"
