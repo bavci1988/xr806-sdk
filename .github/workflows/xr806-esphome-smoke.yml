@@ -35,11 +35,20 @@ jobs:
           path: esphome-xr806
           persist-credentials: false
 
+      - name: Restore cached ARM GCC 13 toolchain
+        id: arm-cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/arm-gcc
+          key: xr806-xpack-arm-gcc-13.3.1-1.1-linux-x64-v1
+
       - name: Install ARM toolchain
         run: |
           set -euo pipefail
           # Use verified GCC 13.3.1 with complete C++20 standard library.
+          # A successful download is persisted by actions/cache for future runs.
           TOOLCHAIN_URL="https://github.com/xpack-dev-tools/arm-none-eabi-gcc-xpack/releases/download/v13.3.1-1.1/xpack-arm-none-eabi-gcc-13.3.1-1.1-linux-x64.tar.gz"
+          if [[ "${{ steps.arm-cache.outputs.cache-hit }}" != "true" ]]; then
           # GitHub release CDN occasionally responds 504; retry with bounded backoff.
           for attempt in 1 2 3 4 5; do
             if curl --fail --location --retry 5 --retry-all-errors --retry-delay 5 \
@@ -56,6 +65,7 @@ jobs:
           tar -tzf /tmp/arm-gcc.tar.gz >/dev/null
           mkdir -p "$RUNNER_TEMP/arm-gcc"
           tar -xzf /tmp/arm-gcc.tar.gz -C "$RUNNER_TEMP/arm-gcc"
+          fi
           CC_BIN="$(find "$RUNNER_TEMP/arm-gcc" -type f -name arm-none-eabi-gcc -print -quit)"
           if [[ -z "$CC_BIN" ]]; then
             echo "::error::arm-none-eabi-gcc not found in extracted archive"
