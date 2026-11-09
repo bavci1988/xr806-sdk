@@ -1,0 +1,92 @@
+name: XR806 TRV16 full YAML firmware build (private credentials)
+
+on:
+  push:
+    branches:
+      - test/trv16-wxu-full-build-20261109
+    paths:
+      - ci/trv16-wxu-full.yaml
+      - .github/workflows/trv16-wxu-full-build.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Validate and cross-compile complete TRV16 YAML
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - name: Checkout private pinned XR806 SDK
+        uses: actions/checkout@v4
+        with:
+          path: sdk
+          persist-credentials: false
+
+      - name: Checkout public ESPHome XR806 test branch
+        uses: actions/checkout@v4
+        with:
+          repository: bavci1988/esphome-xr806
+          ref: test/trv16-wxu-full-build-20261109
+          path: esphome-xr806
+          persist-credentials: false
+
+      - name: Install cross compiler and build requirements
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            gcc-arm-none-eabi libnewlib-arm-none-eabi \
+            libstdc++-arm-none-eabi-newlib build-essential \
+            make cmake ninja-build git python3 python3-pip python3-venv
+
+      - name: Install source ESPHome fork
+        run: |
+          set -euo pipefail
+          python3 -m venv /opt/esphome-venv
+          /opt/esphome-venv/bin/python -m pip install --upgrade pip
+          /opt/esphome-venv/bin/python -m pip install -e ./esphome-xr806
+          arm-none-eabi-gcc --version | head -1
+
+      - name: Copy complete credentials-included YAML outside SDK worktree
+        run: |
+          set -euo pipefail
+          mkdir -p ci-tests
+          cp sdk/ci/trv16-wxu-full.yaml ci-tests/trv16-wxu-full.yaml
+          echo "Test config size: $(wc -c < ci-tests/trv16-wxu-full.yaml) bytes"
+          echo "ESPHome source: $(git -C esphome-xr806 rev-parse HEAD)"
+          echo "XR806 SDK source: $(git -C sdk rev-parse HEAD)"
+
+      - name: Validate complete YAML without dropping components
+        run: |
+          set -euo pipefail
+          /opt/esphome-venv/bin/python -m esphome config ci-tests/trv16-wxu-full.yaml
+
+      - name: Cross-compile complete YAML into AWIH firmware
+        env:
+          XR806_SDK_SOURCE_DIR: ${{ github.workspace }}/sdk
+          XR806_SDK_EXPECTED_COMMIT: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          export CC_DIR="$(dirname "$(command -v arm-none-eabi-gcc)")"
+          /opt/esphome-venv/bin/python -m esphome compile ci-tests/trv16-wxu-full.yaml
+
+      - name: Validate flash and OTA images
+        run: |
+          set -euo pipefail
+          root=ci-tests/.esphome/build/trv16-wxu/.pioenvs/trv16-wxu
+          test -s "$root/firmware.bin"
+          test "$(head -c4 "$root/firmware.bin")" = AWIH
+          test -s "$root/firmware.ota.bin"
+          sha256sum "$root/firmware.bin" "$root/firmware.ota.bin"
+
+      - name: Upload full firmware artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: trv16-wxu-full-firmware
+          if-no-files-found: error
+          retention-days: 14
+          path: |
+            ci-tests/.esphome/build/trv16-wxu/.pioenvs/trv16-wxu/firmware.bin
+            ci-tests/.esphome/build/trv16-wxu/.pioenvs/trv16-wxu/firmware.ota.bin
