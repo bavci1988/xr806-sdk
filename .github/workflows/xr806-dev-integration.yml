@@ -95,7 +95,10 @@ jobs:
             password: "test-only-not-secret"
             power_save_mode: light
           YAML
-      - name: Compile three firmwares using pre-provisioned private SDK
+      - name: Include ESPHome XR806 OTA no-erase integration fixture
+        run: |
+          cp esphome-xr806/tests/yaml/xr806_ota_transport_noerase.yaml ci-tests/xr806_ota_transport_noerase.yaml
+      - name: Compile four firmwares using pre-provisioned private SDK
         env:
           XR806_SDK_SOURCE_DIR: ${{ github.workspace }}/sdk
           XR806_SDK_EXPECTED_COMMIT: ${{ github.sha }}
@@ -106,10 +109,11 @@ jobs:
           /opt/esphome-venv/bin/python -m esphome compile ci-tests/xr806_trv16_uart0_lowpower_test.yaml
           /opt/esphome-venv/bin/python -m esphome compile ci-tests/xr806_irq_linkprobe.yaml
           /opt/esphome-venv/bin/python -m esphome compile ci-tests/xr806_wlan_smoke.yaml
+          /opt/esphome-venv/bin/python -m esphome compile ci-tests/xr806_ota_transport_noerase.yaml
       - name: Verify AWIH output and image consistency
         run: |
           set -euo pipefail
-          for name in xr806-trv16-uart0-lp xr806-irq-linkprobe xr806-wlan-probe; do
+          for name in xr806-trv16-uart0-lp xr806-irq-linkprobe xr806-wlan-probe xr806-ota-noerase-ci; do
             base="ci-tests/.esphome/build/$name"
             fw="$base/.pioenvs/$name/firmware.bin"
             img="$base/xr806/firmware/firmware.img"
@@ -130,3 +134,4 @@ jobs:
             ci-tests/.esphome/build/xr806-trv16-uart0-lp/.pioenvs/xr806-trv16-uart0-lp/firmware.bin
             ci-tests/.esphome/build/xr806-irq-linkprobe/.pioenvs/xr806-irq-linkprobe/firmware.bin
             ci-tests/.esphome/build/xr806-wlan-probe/.pioenvs/xr806-wlan-probe/firmware.bin
+            ci-tests/.esphome/build/xr806-ota-noerase-ci/.pioenvs/xr806-ota-noerase-ci/firmware.bin
