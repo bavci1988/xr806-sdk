@@ -24,7 +24,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: bavci1988/esphome-xr806
-          ref: 9070af82d43e9a5b3d74c543b19a57d39c4987f0
+          ref: b482ce9650b2d25af2016367459bdbdff464ef5a
           path: esphome-src
           persist-credentials: false
       - uses: actions/setup-python@v5
