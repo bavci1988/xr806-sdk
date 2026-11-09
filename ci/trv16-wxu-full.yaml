@@ -1,0 +1,314 @@
+esphome:
+  name: trv16-wxu
+  friendly_name: TRV16 Heizkörperthermostat
+
+# Allwinner XR806 / Tuya WXU
+xr806:
+  board: wxu
+  lowpower: true
+
+  wlan:
+    dtim: 3
+    network_suspend: true
+
+  standby:
+    enabled: true
+    wake_pin: PA20
+    wake_edge: falling  # Noch elektrisch zu bestätigen
+    wake_after_ms: 3000
+    quiet_ms: 250
+    min_awake_ms: 5000
+    require_external_sync: true
+
+web_server:
+  js_url: http://homeassistant:8123/local/www.js
+
+captive_portal:
+
+mdns:
+
+api:
+  encryption:
+    key: "zZDtxfghcsCYoVkU+J5YqivacqR8h1UtfEZiOwbeLGM="
+
+ota:
+  - platform: esphome
+    password: "31845ee8ac771e99cece0249d879d604"
+
+# Netzwerk / Home Assistant
+wifi:
+  ssid: Guck.Net.Home.1
+  password: erol3birol2avci1#
+  power_save_mode: light
+
+# Zeit für MCU-Wochenprogramm und RTC
+time:
+  - platform: homeassistant
+    id: ha_time
+
+# WXU <-> HC32L136
+uart:
+  id: trv16_uart
+  tx_pin: PB0
+  rx_pin: PB1
+  baud_rate: 115200
+  rx_buffer_size: 512
+  data_bits: 8
+  stop_bits: 1
+  parity: NONE
+
+# Tuya Low-Power MCU v0
+tuya:
+  id: trv16_mcu
+  uart_id: trv16_uart
+  protocol: low_power_v0
+  auto_baud: true
+  time_id: ha_time
+
+  # PB04 (WXU -> MCU) bleibt absichtlich
+  # deaktiviert, bis Pinbelegung und Polarität
+  # auf echter Hardware bestätigt sind.
+
+  on_datapoint_update:
+
+    # DP19: Heizaktivität (ENUM 0/1)
+    - sensor_datapoint: 19
+      datapoint_type: enum
+      then:
+        - lambda: |-
+            id(trv16_heating).publish_state(x == 1);
+
+    # DP102: tägliches Schlafzeitfenster
+    # RAW: Start-H, Start-M, Ende-H, Ende-M
+    - sensor_datapoint: 102
+      datapoint_type: raw
+      then:
+        - lambda: |-
+            if (x.size() != 4) return;
+            if (x[0] > 23 || x[1] > 59 ||
+                x[2] > 23 || x[3] > 59) return;
+            char buf[16];
+            snprintf(buf, sizeof(buf),
+                     "%02u:%02u - %02u:%02u",
+                     x[0], x[1], x[2], x[3]);
+            id(trv16_sleep_window).publish_state(buf);
+
+    # DP107: Wochenprogramm mit 8 Zeitpunkten
+    # Jeder Punkt: Stunde, Minute, Temperatur BE16
+    - sensor_datapoint: 107
+      datapoint_type: raw
+      then:
+        - lambda: |-
+            if (x.size() != 32) return;
+            std::string result;
+            char buf[24];
+            for (size_t i = 0; i < 8; i++) {
+              size_t p = i * 4;
+              uint16_t temp =
+                (uint16_t(x[p + 2]) << 8) | x[p + 3];
+              snprintf(buf, sizeof(buf),
+                       "%02u:%02u=%u.%u",
+                       x[p], x[p + 1],
+                       temp / 10, temp % 10);
+              if (i) result += "; ";
+              result += buf;
+            }
+            id(trv16_schedule).publish_state(result);
+
+    # DP108: Diagnosedaten, Semantik noch offen
+    - sensor_datapoint: 108
+      datapoint_type: any
+      then:
+        - lambda: |-
+            using T = esphome::tuya::TuyaDatapointType;
+            std::string value;
+            switch (x.type) {
+              case T::BOOLEAN:
+                value = x.value_bool ? "true" : "false";
+                break;
+              case T::INTEGER:
+                value = std::to_string(x.value_int);
+                break;
+              case T::ENUM:
+                value = std::to_string(x.value_enum);
+                break;
+              case T::BITMASK:
+                value = std::to_string(x.value_bitmask);
+                break;
+              case T::STRING:
+                value = x.value_string;
+                break;
+              case T::RAW: {
+                const char *hex = "0123456789ABCDEF";
+                for (size_t i = 0;
+                     i < x.value_raw.size() && i < 48;
+                     i++) {
+                  uint8_t b = x.value_raw[i];
+                  value += hex[b >> 4];
+                  value += hex[b & 15];
+                }
+                break;
+              }
+              default:
+                value = "unknown";
+            }
+            id(trv16_dp108).publish_state(value);
+
+# DP1 Power
+# DP3 Target Temperature
+# DP4 Current Temperature
+climate:
+  - platform: tuya
+    name: Heizung
+    tuya_id: trv16_mcu
+    supports_heat: true
+    supports_cool: false
+
+    switch_datapoint: 1
+    target_temperature_datapoint: 3
+    current_temperature_datapoint: 4
+
+    target_temperature_multiplier: 0.1
+    current_temperature_multiplier: 0.1
+
+    visual:
+      min_temperature: 5
+      max_temperature: 35
+      temperature_step: 0.5
+
+# DP17 Kindersicherung
+# DP20 Frostschutz
+switch:
+  - platform: tuya
+    name: Kindersicherung
+    tuya_id: trv16_mcu
+    switch_datapoint: 17
+    icon: mdi:lock
+
+  - platform: tuya
+    name: Frostschutz
+    tuya_id: trv16_mcu
+    switch_datapoint: 20
+    icon: mdi:snowflake
+
+# DP7 Temperaturkorrektur
+# DP10 Maximale Solltemperatur
+# DP11 Minimale Solltemperatur
+number:
+  - platform: tuya
+    name: Temperaturkorrektur
+    tuya_id: trv16_mcu
+    number_datapoint: 7
+    min_value: -9.9
+    max_value: 9.9
+    step: 0.1
+    multiply: 10
+    unit_of_measurement: "°C"
+    entity_category: config
+
+  - platform: tuya
+    name: Maximale Temperatur
+    tuya_id: trv16_mcu
+    number_datapoint: 10
+    min_value: 15
+    max_value: 35
+    step: 0.5
+    multiply: 10
+    unit_of_measurement: "°C"
+    entity_category: config
+
+  - platform: tuya
+    name: Minimale Temperatur
+    tuya_id: trv16_mcu
+    number_datapoint: 11
+    min_value: 5
+    max_value: 14
+    step: 0.5
+    multiply: 10
+    unit_of_measurement: "°C"
+    entity_category: config
+
+# DP2 Betriebsmodus
+# DP104 Heizwochenprofil
+select:
+  - platform: tuya
+    name: Betriebsmodus
+    tuya_id: trv16_mcu
+    enum_datapoint: 2
+    options:
+      0: Automatik
+      1: Manuell
+    optimistic: false
+
+  - platform: tuya
+    name: Wochenprofil
+    tuya_id: trv16_mcu
+    enum_datapoint: 104
+    options:
+      0: "7 Tage"
+      1: "5+2 Tage"
+      2: "6+1 Tage"
+    optimistic: false
+    entity_category: config
+
+# DP16 Batterieladung
+# DP105 Schalthysterese (vorläufige Zuordnung)
+sensor:
+  - platform: tuya
+    name: Batteriestand
+    tuya_id: trv16_mcu
+    sensor_datapoint: 16
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    device_class: battery
+    state_class: measurement
+    icon: mdi:battery
+
+  - platform: tuya
+    name: Hysterese Rohwert
+    tuya_id: trv16_mcu
+    sensor_datapoint: 105
+    filters:
+      - multiply: 0.1
+    accuracy_decimals: 1
+    unit_of_measurement: "°C"
+    entity_category: diagnostic
+
+# DP19 Heizaktivität
+# DP101 Schlafzeitfenster eingeschaltet
+binary_sensor:
+  - platform: template
+    id: trv16_heating
+    name: Heizt gerade
+    device_class: heat
+
+  - platform: tuya
+    name: Schlafzeitfenster aktiviert
+    tuya_id: trv16_mcu
+    sensor_datapoint: 101
+    entity_category: diagnostic
+
+# DP102, DP107 und DP108
+text_sensor:
+  - platform: template
+    id: trv16_sleep_window
+    name: Schlafzeitfenster
+    entity_category: diagnostic
+
+  - platform: template
+    id: trv16_schedule
+    name: Wochenprogramm
+    entity_category: diagnostic
+
+  - platform: template
+    id: trv16_dp108
+    name: DP108 Rohdiagnose
+    entity_category: diagnostic
+
+# DP106: bestätigter Status-Refresh-Trigger
+button:
+  - platform: template
+    name: MCU Status aktualisieren
+    on_press:
+      - tuya.refresh:
+          tuya_id: trv16_mcu
