@@ -120,7 +120,7 @@ jobs:
           done
       - name: Upload container-built firmware
         if: success()
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: xr806-ha-container-firmware
           if-no-files-found: error
