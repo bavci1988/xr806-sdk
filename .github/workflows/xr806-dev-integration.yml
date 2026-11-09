@@ -123,6 +123,31 @@ jobs:
             cmp "$fw" "$img"
             sha256sum "$fw"
           done
+      - name: Validate stamped ROM OTA geometry and usable native XZ package
+        run: |
+          set -euo pipefail
+          /opt/esphome-venv/bin/python - <<'PY'
+          import pathlib
+          import struct
+          import sys
+          sys.path.insert(0, str(pathlib.Path("esphome-xr806/tools/xr806").resolve()))
+          from make_ota_xz import section, package, BOOT_ID, APP_ID
+          for name in ("xr806-trv16-uart0-lp", "xr806-irq-linkprobe",
+                       "xr806-wlan-probe", "xr806-ota-noerase-ci"):
+              root = pathlib.Path("ci-tests/.esphome/build") / name / ".pioenvs" / name
+              fw = (root / "firmware.bin").read_bytes()
+              boot = section(fw, 0, BOOT_ID)
+              assert boot[11] == 0x1000FF, (name, "OTA metadata flash/size missing")
+              assert boot[12] == 0x13F000, (name, "wrong OTA metadata address")
+              assert boot[13] == ((640 << 16) | 1276), (name, "wrong OTA compressed capacity")
+              payload, info = package(fw)
+              assert info["fits"] and info["ota_slot_bytes"] == 655360
+              print(name, "total_image_bytes", len(fw), "XZ_OTA_bytes", len(payload))
+              if name == "xr806-ota-noerase-ci":
+                  output = (root / "firmware.ota.bin").read_bytes()
+                  assert output == payload, "CI OTA artifact differs from actual build"
+                  section(output, 0, APP_ID)
+          PY
       - name: Upload container-built firmware
         if: success()
         uses: actions/upload-artifact@v7.0.2
@@ -135,3 +160,4 @@ jobs:
             ci-tests/.esphome/build/xr806-irq-linkprobe/.pioenvs/xr806-irq-linkprobe/firmware.bin
             ci-tests/.esphome/build/xr806-wlan-probe/.pioenvs/xr806-wlan-probe/firmware.bin
             ci-tests/.esphome/build/xr806-ota-noerase-ci/.pioenvs/xr806-ota-noerase-ci/firmware.bin
+            ci-tests/.esphome/build/xr806-ota-noerase-ci/.pioenvs/xr806-ota-noerase-ci/firmware.ota.bin
