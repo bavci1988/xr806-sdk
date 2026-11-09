@@ -1,0 +1,60 @@
+name: XR806 SDK one-time branch consolidation
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/xr806-sdk-branch-cleanup-once.yml']
+permissions:
+  contents: write
+jobs:
+  archive-and-delete:
+    if: github.repository == 'bavci1988/xr806-sdk'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Archive and delete resolved SDK feature branches
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 - <<'PY'
+          import json, os, urllib.request, urllib.parse, urllib.error
+          repo = "bavci1988/xr806-sdk"
+          expected = {"ci/stage7b-standby-compile":"76df1ec50d9a3d1ee11cfc4e7d16498d5b75006c"}
+          token = os.environ["GH_TOKEN"]
+          def call(method, route, body=None):
+              url = "https://api.github.com/repos/" + repo + "/" + route
+              data = None if body is None else json.dumps(body).encode()
+              req = urllib.request.Request(url, data=data, method=method, headers={
+                  "Authorization": "Bearer " + token,
+                  "Accept": "application/vnd.github+json",
+                  "X-GitHub-Api-Version": "2022-11-28",
+                  "Content-Type": "application/json",
+              })
+              try:
+                  with urllib.request.urlopen(req, timeout=30) as response:
+                      raw = response.read()
+                      return json.loads(raw) if raw else None
+              except urllib.error.HTTPError as error:
+                  if error.code == 404 and method == "GET":
+                      return None
+                  raise RuntimeError(f"GitHub {method} {route} HTTP {error.code}: {error.read().decode()[:350]}") from error
+          for branch, sha in expected.items():
+              encoded = urllib.parse.quote(branch, safe="/")
+              head = call("GET", "git/ref/heads/" + encoded)
+              if head is None:
+                  print("Already absent:", branch)
+                  continue
+              if head["object"]["sha"] != sha:
+                  raise SystemExit(f"Ref changed since audit: {branch}; deletion refused")
+              tag = "archive/pre-consolidation-20261109/" + branch.replace("/", "-")
+              route = "git/ref/tags/" + urllib.parse.quote(tag, safe="/")
+              if call("GET", route) is None:
+                  call("POST", "git/refs", {"ref": "refs/tags/" + tag, "sha": sha})
+              verified = call("GET", route)
+              if verified is None or verified["object"]["sha"] != sha:
+                  raise SystemExit(f"Archive tag verification failed: {tag}")
+              print("Archived:", branch, "as", tag)
+              call("DELETE", "git/refs/heads/" + encoded)
+              if call("GET", "git/ref/heads/" + encoded) is not None:
+                  raise SystemExit(f"Branch deletion did not complete: {branch}")
+              print("Deleted:", branch)
+          print("SDK branch cleanup complete.")
+          PY
