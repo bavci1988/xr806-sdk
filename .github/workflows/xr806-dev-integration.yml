@@ -29,7 +29,7 @@ jobs:
       - name: Bootstrap container for GitHub Actions
         run: |
           apt-get update
-          DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends git ca-certificates python3 python3-pip python3-venv make gcc gcc-arm-none-eabi libnewlib-arm-none-eabi libstdc++-arm-none-eabi-newlib
+          DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends git ca-certificates python3 python3-pip python3-venv make gcc build-essential libc6-dev libncurses-dev gcc-arm-none-eabi libnewlib-arm-none-eabi libstdc++-arm-none-eabi-newlib
       - uses: actions/checkout@v7.0.1
         with:
           path: sdk
