@@ -20,11 +20,11 @@ jobs:
           ref: 963f6f74030bc2fdbf430e66092ca96f6a0c7a6c
           path: vendor-sdk
           persist-credentials: false
-      - name: Checkout ESPHome Stage 7b
+      - name: Checkout integrated XR806/Tuya standby branch
         uses: actions/checkout@v4
         with:
           repository: bavci1988/esphome-xr806
-          ref: stage7b/standby-wakeup
+          ref: feature/xr806-tuya-standby-bridge
           path: esphome-src
           persist-credentials: false
       - uses: actions/setup-python@v5
@@ -110,18 +110,14 @@ jobs:
               print("PASS opt-in XR806 production coordinator AWIH:", path)
           PY
 
-      - name: Overlay parallel Tuya/autobaud and UART sources locally; cross-compile contract
+      - name: Build integrated Tuya autobaud and guarded standby contract
         env:
           CC_DIR: /usr/bin
           XR806_SDK_SOURCE_DIR: ${{ github.workspace }}/vendor-sdk
           XR806_SDK_EXPECTED_COMMIT: 963f6f74030bc2fdbf430e66092ca96f6a0c7a6c
         run: |
-          git -C esphome-src fetch --no-tags --depth=1 origin feature/tuya-low-power-v0
-          git -C esphome-src log -1 FETCH_HEAD --format='PROTOCOL BRANCH SHA %H %s'
-          # Keep the production-hardened XR806 UART transport from Stage 7b;
-          # overlay only MCU protocol files (including the CMD01 scanner).
-          git -C esphome-src checkout FETCH_HEAD -- esphome/components/tuya
-          git -C esphome-src status --short
+          # Tuya protocol and XR806 platform now share the same tested branch.
+          git -C esphome-src log -1 --format='INTEGRATED COMMIT %H %s'
           cat > /tmp/stage7b-mcu-integration.yaml <<'YAML'
           esphome:
             name: xr806-mcu-integration
