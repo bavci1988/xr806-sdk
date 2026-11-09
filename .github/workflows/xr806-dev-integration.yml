@@ -87,12 +87,13 @@ jobs:
           xr806:
             board: wxu
             lowpower: true
-            wlan_smoke:
-              ssid: "XR806-CI-NO-REAL-NETWORK"
-              password: "test-only-not-secret"
-              power_save: true
+            wlan:
               dtim: 1
               listen_interval: 8
+          wifi:
+            ssid: "XR806-CI-NO-REAL-NETWORK"
+            password: "test-only-not-secret"
+            power_save_mode: light
           YAML
       - name: Compile three firmwares using pre-provisioned private SDK
         env:
