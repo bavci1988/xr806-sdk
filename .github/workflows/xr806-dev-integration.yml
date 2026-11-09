@@ -3,7 +3,7 @@ name: XR806 Firmware CI (SDK main + ESPHome dev)
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches: [main, feature/xr806-ota-writer-part-vi]
     paths:
       - .github/workflows/xr806-dev-integration.yml
       - gcc.mk
@@ -37,7 +37,7 @@ jobs:
       - uses: actions/checkout@v7.0.1
         with:
           repository: bavci1988/esphome-xr806
-          ref: dev
+          ref: feature/xr806-ota-writer-part-vi
           path: esphome-xr806
           persist-credentials: false
       - name: Record exact tested revisions
