@@ -70,15 +70,25 @@ extern "C" {
 /* sysinfo flash ID */
 #define PRJCONF_SYSINFO_FLASH           0
 
-/* sysinfo start address */
-#define PRJCONF_SYSINFO_ADDR            ((1024 - 4) * 1024)
+/* WXU 2 MiB flash, verified against the original WXU 2 MiB dump.
+ * Boot image: up to 1276 KiB, OTA metadata 1276..1280 KiB,
+ * compressed update: up to 1920 KiB.
+ *
+ * WARNING: the original Tuya dump has NON-BLANK sectors 2004..2048 KiB,
+ * including 2036/2040/2044 KiB. These MAY contain device-specific data
+ * and MUST NOT be erased by this ESPHome port.
+ *
+ * The 1972..1984 KiB allocation is inside the dump's confirmed all-0xFF
+ * 1956..2004 KiB window and does not overlap either OTA image region.
+ * Portability to other flash geometries and OEM firmware is NOT established.
+ */
+#define PRJCONF_SYSINFO_ADDR            (1980 * 1024)
 
-/* sysinfo size */
-#define PRJCONF_SYSINFO_SIZE            (4 * 1024)
-
-/* enable/disable checking whether sysinfo is overlap with image */
-#define PRJCONF_SYSINFO_CHECK_OVERLAP   1
-
+/* Two independent 4 KiB FDCM sectors for ESPHome preference snapshots. */
+#define PRJCONF_ESPHOME_PREFS_FLASH     0
+#define PRJCONF_ESPHOME_PREFS0_ADDR     (1972 * 1024)
+#define PRJCONF_ESPHOME_PREFS1_ADDR     (1976 * 1024)
+#define PRJCONF_ESPHOME_PREFS_SECTOR    (4 * 1024)
 #endif /* PRJCONF_SYSINFO_SAVE_TO_FLASH */
 
 /* MAC address source */
