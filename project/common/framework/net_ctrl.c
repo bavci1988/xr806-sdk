@@ -85,9 +85,18 @@ static void netif_up_handler(struct netif *nif)
 		break;
 #endif
 #ifdef CONFIG_WLAN_AP
-	case WLAN_MODE_HOSTAP:
-		dhcp_server_start(NULL);
+	case WLAN_MODE_HOSTAP: {
+		/* The stock udhcpd pool is not in the XR806 AP's subnet.
+		 * Keep the DHCP leases within the 192.168.176.0/24 AP network. */
+		struct dhcp_server_info dhcpd_info = {0};
+		uint32_t ip_host = ntohl(ip4_addr_get_u32(netif_ip4_addr(nif)));
+		dhcpd_info.addr_start = htonl(ip_host + 100);
+		dhcpd_info.addr_end = htonl(ip_host + 104);
+		dhcpd_info.lease_time = 12 * 60 * 60;
+		dhcpd_info.max_leases = 5;
+		dhcp_server_start(&dhcpd_info);
 		break;
+	}
 #endif
 #ifdef CONFIG_WLAN_MONITOR
 	case WLAN_MODE_MONITOR:
