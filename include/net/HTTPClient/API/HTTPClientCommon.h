@@ -99,10 +99,17 @@ typedef enum _HTTP_VERB
 		VerbGet = 0,
 		VerbHead,
 		VerbPost,
+		VerbPut,
+		VerbDelete,
+		VerbPatch,
 		VerbNotSupported
-		// Note: others verb such as connect and put are currently not supported
+		// Note: others verb such as connect are currently not supported
 
 } HTTP_VERB;
+
+// Verbs whose request carries a body (sent with Content-Length or chunked)
+#define HTTP_VERB_HAS_BODY(verb) \
+	((verb) == VerbPost || (verb) == VerbPut || (verb) == VerbDelete || (verb) == VerbPatch)
 #ifdef HTTP_GET_REDIRECT_URL
 typedef struct _HTTP_REDIRECT_PARAM
 {
