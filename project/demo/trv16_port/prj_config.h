@@ -70,8 +70,17 @@ extern "C" {
 /* sysinfo flash ID */
 #define PRJCONF_SYSINFO_FLASH           0
 
-/* sysinfo start address */
-#define PRJCONF_SYSINFO_ADDR            ((1024 - 4) * 1024)
+/* WXU has a 2 MiB SPI flash. The compressed OTA layout reserves
+ *   0..1276 KiB   running image
+ *   1276..1280 KiB OTA metadata
+ *   1280..1920 KiB compressed update
+ *   1920..2048 KiB application data
+ * The original 1020 KiB location falls inside the running image slot and
+ * fails sysinfo_init()'s OTA overlap check. Keep sysinfo in the reserved
+ * tail with its own 4 KiB erase-aligned sector. Other preferences must
+ * have a separately validated sector and must never share this one.
+ */
+#define PRJCONF_SYSINFO_ADDR            ((2048 - 4) * 1024)
 
 /* sysinfo size */
 #define PRJCONF_SYSINFO_SIZE            (4 * 1024)
