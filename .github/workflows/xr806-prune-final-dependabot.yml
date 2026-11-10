@@ -1,0 +1,29 @@
+name: XR806 SDK last one-time Dependabot branch cleanup
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/xr806-prune-final-dependabot.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  prune:
+    if: github.repository == 'bavci1988/xr806-sdk'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v9.0.0
+        with:
+          script: |
+            const branch = "dependabot/github_actions/github-actions-72bae3d27f";
+            const expected = "62d5641009820b32194baa92789340094a890032";
+            const { owner, repo } = context.repo;
+            const ref = await github.rest.git.getRef({ owner, repo, ref: "heads/" + branch });
+            if (ref.data.object.sha !== expected) throw Error("Branch head changed; refusing deletion");
+            const result = await github.rest.repos.compareCommits({ owner, repo, base: "main", head: branch });
+            if (result.data.ahead_by !== 0) throw Error("Branch still has unmerged commits");
+            await github.rest.git.deleteRef({ owner, repo, ref: "heads/" + branch });
+            core.info("Deleted " + branch + " after verification");

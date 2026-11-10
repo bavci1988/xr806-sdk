@@ -15,19 +15,19 @@ jobs:
     timeout-minutes: 40
     steps:
       - name: Checkout pinned XR806 SDK (private; isolated)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7.0.1
         with:
           ref: 963f6f74030bc2fdbf430e66092ca96f6a0c7a6c
           path: vendor-sdk
           persist-credentials: false
       - name: Checkout integrated XR806/Tuya standby branch
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7.0.1
         with:
           repository: bavci1988/esphome-xr806
           ref: 1f7898c86c3f8b297577760dc73e9f8ccdfb3c70
           path: esphome-src
           persist-credentials: false
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7.1.0
         with:
           python-version: "3.12"
       - name: Record integrated source revision
@@ -74,7 +74,7 @@ jobs:
           PY
       - name: Save bench-only AWIH image
         if: success()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: xr806-stage7b-bench-awih
           path: /tmp/.esphome/build/xr806-stage7b-ci/.pioenvs/xr806-stage7b-ci/firmware.bin

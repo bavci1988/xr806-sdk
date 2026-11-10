@@ -8,4 +8,7 @@ updates:
       github-actions:
         patterns:
           - "*"
-    open-pull-requests-limit: 5
+    # Intentionally disable automatic version PRs/branches for this focused
+    # hardware SDK. Reactivate manually after the branch-cleanup cycle.
+    # GitHub Dependabot security alerts/updates are separate settings.
+    open-pull-requests-limit: 0
