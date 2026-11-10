@@ -31,6 +31,7 @@
 #include <stdlib.h>
 
 #include "image/fdcm.h"
+#include "image/flash.h"
 #include "image/image.h"
 #if PRJCONF_NET_EN
 #include "lwip/inet.h"
@@ -188,6 +189,42 @@ int sysinfo_init(void)
 	}
 #endif
 
+#endif
+#ifdef PRJCONF_ESPHOME_PREFS_SECTOR
+	/* WXU ESPHome image: no FDCM auto-initialization may erase foreign
+	 * OEM data. The original dump's former 2044 KiB sector is not blank;
+	 * the new 1980 KiB sector was verified erased in that dump.
+	 */
+	{
+		uint8_t probe[64];
+		uint32_t fdcm_magic = 0;
+		uint16_t fdcm_data_size = 0;
+		uint32_t offset;
+		int erased = 1;
+
+		for (offset = 0; offset < PRJCONF_SYSINFO_SIZE; offset += sizeof(probe)) {
+			uint32_t i;
+			if (flash_read(PRJCONF_SYSINFO_FLASH, PRJCONF_SYSINFO_ADDR + offset,
+			               probe, sizeof(probe)) != sizeof(probe)) {
+				SYSINFO_ERR("cannot inspect sysinfo flash sector\n");
+				return -1;
+			}
+			if (offset == 0) {
+				memcpy(&fdcm_magic, probe, sizeof(fdcm_magic));
+				memcpy(&fdcm_data_size, probe + 6, sizeof(fdcm_data_size));
+			}
+			for (i = 0; i < sizeof(probe); ++i) {
+				if (probe[i] != 0xFF) {
+					erased = 0;
+					break;
+				}
+			}
+		}
+		if (!erased && !(fdcm_magic == 0xA55A5AA5U && fdcm_data_size == SYSINFO_SIZE)) {
+			SYSINFO_ERR("nonblank foreign data in reserved sysinfo sector; refusing erase\n");
+			return -1;
+		}
+	}
 #endif
 	g_fdcm_hdl = fdcm_open(PRJCONF_SYSINFO_FLASH, PRJCONF_SYSINFO_ADDR, PRJCONF_SYSINFO_SIZE);
 	if (g_fdcm_hdl == NULL) {
