@@ -4,7 +4,7 @@
 #define DHCPD_ADDR_START         "192.168.4.100"
 #define DHCPD_ADDR_END           "192.168.4.104"
 #define DHCPD_INTERFACE          "en1"
-#define DHCPD_OPTION             ""
+#define DHCPD_OPTION             "dns 192.168.176.1"
 #define DHCPD_OPT                ""
 #define DHCPD_REMAIN             "yes"
 #define DHCPD_MAX_LEASES         "5"
