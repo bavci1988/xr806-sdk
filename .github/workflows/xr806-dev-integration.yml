@@ -96,9 +96,10 @@ jobs:
             password: "test-only-not-secret"
             power_save_mode: light
           YAML
-      - name: Include the ESPHome XR806 OTA test configuration
+      - name: Include the ESPHome XR806 OTA test configurations
         run: |
           cp esphome-xr806/tests/component_tests/xr806/config/ota.yaml ci-tests/xr806_ota.yaml
+          cp esphome-xr806/tests/component_tests/xr806/config/web_server_ota_standby.yaml ci-tests/xr806_web_ota_standby.yaml
       - name: Include XR806 HTTP and captive portal configurations
         run: |
           cat > ci-tests/xr806_web_server.yaml <<'YAML'
@@ -149,7 +150,16 @@ jobs:
             /tmp/host-test
             echo "PASS $(basename "$test")"
           done
-      - name: Compile seven firmwares including web/captive via pre-provisioned SDK
+      - name: Run the ESPHome XR806 gtests
+        run: |
+          set -euo pipefail
+          DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends libgtest-dev
+          for test in esphome-xr806/tests/components/xr806/*_test.cpp esphome-xr806/tests/components/web_server_xr806/*_test.cpp; do
+            g++ -std=gnu++20 -Wall -Wextra -Werror -O1 -fsanitize=address,undefined -fno-sanitize-recover=all \
+              -Iesphome-xr806 "$test" -lgtest -lgtest_main -pthread -o /tmp/esphome-gtest
+            /tmp/esphome-gtest
+          done
+      - name: Compile eight firmwares including web, captive portal and web OTA via pre-provisioned SDK
         env:
           XR806_SDK_SOURCE_DIR: ${{ github.workspace }}/sdk
           XR806_SDK_EXPECTED_COMMIT: ${{ github.sha }}
@@ -164,6 +174,7 @@ jobs:
           /opt/esphome-venv/bin/python -m esphome compile ci-tests/xr806_web_server.yaml
           /opt/esphome-venv/bin/python -m esphome compile ci-tests/xr806_captive.yaml
           /opt/esphome-venv/bin/python -m esphome compile ci-tests/xr806_ap_web_server.yaml
+          /opt/esphome-venv/bin/python -m esphome compile ci-tests/xr806_web_ota_standby.yaml
       - name: Verify AWIH output and image consistency
         run: |
           set -euo pipefail
