@@ -24,11 +24,11 @@ jobs:
           path: sdk
           persist-credentials: false
 
-      - name: Checkout public ESPHome XR806 test branch
+      - name: Checkout canonical public ESPHome XR806 dev branch
         uses: actions/checkout@v4
         with:
           repository: bavci1988/esphome-xr806
-          ref: test/trv16-wxu-full-build-20261109
+          ref: dev
           path: esphome-xr806
           persist-credentials: false
 
