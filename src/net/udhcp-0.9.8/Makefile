@@ -34,7 +34,6 @@ CC_FLAGS += -DDHCPD_LWIP \
             -DDHCPD_FREERTOS \
             -DDHCPD_ICMPPING \
             -DDHCPD_LOW_LEVEL \
-            -DDHCPD_DNS \
             -DDHCPD_USE_DEFAULT_INIT \
             -DDHCPD_UPGRADE_STA_MAC \
             -DDHCPD_TIMEALT
