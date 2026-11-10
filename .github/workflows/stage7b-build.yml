@@ -15,13 +15,13 @@ jobs:
     timeout-minutes: 40
     steps:
       - name: Checkout pinned XR806 SDK (private; isolated)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: 963f6f74030bc2fdbf430e66092ca96f6a0c7a6c
           path: vendor-sdk
           persist-credentials: false
       - name: Checkout integrated XR806/Tuya standby branch
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: bavci1988/esphome-xr806
           ref: 1f7898c86c3f8b297577760dc73e9f8ccdfb3c70
