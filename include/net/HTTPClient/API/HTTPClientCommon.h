@@ -127,4 +127,8 @@ typedef struct _HTTP_CLIENT
 #endif
 } HTTP_CLIENT;
 
+#ifdef __cplusplus
+}
+#endif
+
 #endif // _HTTPCLIENT_PROTOCOL_H_
