@@ -124,6 +124,7 @@ jobs:
           cp esphome-xr806/tests/component_tests/xr806/config/http_request_standby.yaml ci-tests/xr806_http_standby.yaml
           cp esphome-xr806/tests/component_tests/xr806/config/debug.yaml ci-tests/xr806_debug.yaml
           cp esphome-xr806/tests/component_tests/xr806/config/prometheus_api.yaml ci-tests/xr806_prometheus_api.yaml
+          cp esphome-xr806/tests/component_tests/xr806/config/uart.yaml ci-tests/xr806_uart.yaml
       - name: Include XR806 HTTP and captive portal configurations
         run: |
           cat > ci-tests/xr806_web_server.yaml <<'YAML'
@@ -203,6 +204,7 @@ jobs:
           /opt/esphome-venv/bin/python -m esphome compile ci-tests/xr806_http_standby.yaml
           /opt/esphome-venv/bin/python -m esphome compile ci-tests/xr806_debug.yaml
           /opt/esphome-venv/bin/python -m esphome compile ci-tests/xr806_prometheus_api.yaml
+          /opt/esphome-venv/bin/python -m esphome compile ci-tests/xr806_uart.yaml
       - name: Verify AWIH output and image consistency
         run: |
           set -euo pipefail
