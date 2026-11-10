@@ -27,3 +27,9 @@ The completed PR #6 and PR #10 feature branch heads are also ancestors of `main`
 `.github/workflows/xr806-prune-merged-branches.yml` is a narrowly scoped, one-shot `main` push workflow. For each explicitly named head it checks (1) exact known SHA and (2) zero commits ahead of `main` before deleting the ref using repository-scoped `contents: write`. It never targets `main` or `Convert-tuya2esphome-ota`.
 
 If repository policy prevents the workflow token from deleting refs, delete these six verified-integrated branches manually. After a successful cleanup run, remove the one-shot workflow file to eliminate unnecessary future write-capable automation.
+
+## Second Dependabot reconciliation
+
+A single grouped Dependabot branch (`dependabot/github_actions/github-actions-72bae3d27f`, head `62d5641009820b32194baa92789340094a890032`) was created immediately after enabling grouped version updates. Its history is retained as another merge parent. The stage7b workflow now uses exact action versions that are newer or equal to those proposed by the bot; already pinned actions in other workflows are not downgraded.
+
+To avoid recreating disposable GitHub Actions version-PR branches, `.github/dependabot.yml` now sets `open-pull-requests-limit: 0` for **version updates**. This can be changed later; separate security updates are governed by repository security settings. A second narrowly scoped one-shot workflow removes this one grouped branch after an explicit SHA and zero-ahead comparison. Remove the workflow file once it succeeds.
