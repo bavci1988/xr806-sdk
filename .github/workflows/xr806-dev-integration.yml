@@ -95,6 +95,8 @@ jobs:
             ssid: "XR806-CI-NO-REAL-NETWORK"
             password: "test-only-not-secret"
             power_save_mode: light
+          logger:
+            level: VERY_VERBOSE
           YAML
       - name: Include the ESPHome XR806 OTA test configurations
         run: |
