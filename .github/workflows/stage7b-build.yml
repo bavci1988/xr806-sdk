@@ -27,7 +27,7 @@ jobs:
           ref: 1f7898c86c3f8b297577760dc73e9f8ccdfb3c70
           path: esphome-src
           persist-credentials: false
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       - name: Record integrated source revision
