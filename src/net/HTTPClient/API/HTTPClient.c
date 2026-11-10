@@ -306,6 +306,15 @@ UINT32  HTTPClientSetVerb (HTTP_SESSION_HANDLE pSession,
                 case VerbPost:
                         strcpy(pHTTPSession->HttpHeaders.Verb,"POST");
                         break;
+                case VerbPut:
+                        strcpy(pHTTPSession->HttpHeaders.Verb,"PUT");
+                        break;
+                case VerbDelete:
+                        strcpy(pHTTPSession->HttpHeaders.Verb,"DELETE");
+                        break;
+                case VerbPatch:
+                        strcpy(pHTTPSession->HttpHeaders.Verb,"PATCH");
+                        break;
                 default:
                         // Unknown verb
                         HC_ERR(("No support verb."));
@@ -651,7 +660,7 @@ UINT32 HTTPClientSendRequest (HTTP_SESSION_HANDLE pSession,
                         }
                 }
                 // We are in a post request without knowing the total length in advance so return error or use chunking
-                if(pHTTPSession->HttpHeaders.HttpVerb == VerbPost && TotalLength == FALSE)
+                if(HTTP_VERB_HAS_BODY(pHTTPSession->HttpHeaders.HttpVerb) && TotalLength == FALSE)
                 {
                         // If the user specified the chunked flag
                         if((pHTTPSession->HttpFlags & HTTP_CLIENT_FLAG_SEND_CHUNKED) == HTTP_CLIENT_FLAG_SEND_CHUNKED)
@@ -701,7 +710,7 @@ UINT32 HTTPClientSendRequest (HTTP_SESSION_HANDLE pSession,
 
 
                 // If we know the total length in advance (only when posting)
-                if(pHTTPSession->HttpHeaders.HttpVerb == VerbPost && TotalLength == TRUE)
+                if(HTTP_VERB_HAS_BODY(pHTTPSession->HttpHeaders.HttpVerb) && TotalLength == TRUE)
                 {
                         // set the total content length header
                         pHTTPSession->HttpHeadersInfo.nHTTPPostContentLength = nDataLength; // Store for later usage
@@ -799,7 +808,7 @@ UINT32 HTTPClientSendRequest (HTTP_SESSION_HANDLE pSession,
 
                                         // This the case where the caller know the total length to receive in advance
                                         // and he wishes to send the data right away
-                                        if(pHTTPSession->HttpHeaders.HttpVerb == VerbPost &&  TotalLength == TRUE)
+                                        if(HTTP_VERB_HAS_BODY(pHTTPSession->HttpHeaders.HttpVerb) &&  TotalLength == TRUE)
                                         {
 
                                                 // Send the data
@@ -850,7 +859,7 @@ UINT32 HTTPClientSendRequest (HTTP_SESSION_HANDLE pSession,
                 }
                 // This the case where the caller know the total length to receive in advance
                 // and he wishes to send the data right away
-                if(pHTTPSession->HttpHeaders.HttpVerb == VerbPost &&  TotalLength == TRUE)
+                if(HTTP_VERB_HAS_BODY(pHTTPSession->HttpHeaders.HttpVerb) &&  TotalLength == TRUE)
                 {
                         // Send the data
                         nBytes = nDataLength;

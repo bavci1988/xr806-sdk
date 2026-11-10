@@ -126,7 +126,7 @@ int HTTPC_request(HTTPParameters *ClientParams, HTTP_CLIENT_GET_HEADER Callback)
 sendrequest:
 	do
 	{
-		if (ClientParams->HttpVerb == VerbPost)
+		if (HTTP_VERB_HAS_BODY(ClientParams->HttpVerb))
 		{
 			if (ClientParams->pLength > 0 && ClientParams->pData != NULL)
 			{
