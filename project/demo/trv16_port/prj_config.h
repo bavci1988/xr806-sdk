@@ -82,6 +82,15 @@ extern "C" {
  */
 #define PRJCONF_SYSINFO_ADDR            ((2048 - 4) * 1024)
 
+/* Two independent 4 KiB FDCM sectors for ESPHome's transactional preference
+ * snapshots. Keep each erase area disjoint from sysinfo and OTA regions.
+ * This map is valid ONLY on the 2 MiB WXU variant.
+ */
+#define PRJCONF_ESPHOME_PREFS_FLASH     0
+#define PRJCONF_ESPHOME_PREFS0_ADDR     ((2048 - 12) * 1024)
+#define PRJCONF_ESPHOME_PREFS1_ADDR     ((2048 - 8) * 1024)
+#define PRJCONF_ESPHOME_PREFS_SECTOR    (4 * 1024)
+
 /* sysinfo size */
 #define PRJCONF_SYSINFO_SIZE            (4 * 1024)
 
