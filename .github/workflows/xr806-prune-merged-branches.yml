@@ -1,0 +1,48 @@
+name: XR806 SDK one-time merged branch cleanup
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/xr806-prune-merged-branches.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  prune:
+    if: github.repository == 'bavci1988/xr806-sdk'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete only branch refs already reachable from main
+        uses: actions/github-script@v9.0.0
+        with:
+          script: |
+            const expected = {
+                      "dependabot/github_actions/actions/checkout-7": "235dce8dc3b51e013b789e88b4d35bcfdff0cfa8",
+                      "dependabot/github_actions/actions/setup-python-7": "5e4b4df28d67f9a45bb18711a3b19bbf95890fc2",
+                      "dependabot/github_actions/actions/upload-artifact-7": "e995a28153ff15565f4c93568c58ea4929501ad9",
+                      "feature/xr806-softap-dhcp-fixes": "2c0217b7f4d25d25e4645a47ef353142b63f5e36",
+                      "feature/xr806-web-softap-captive": "82c3f8a5c44325072e0bcd309c28ed9926c48dd9",
+                      "test/trv16-wxu-full-build-20261109": "136c27d926aad3f18395e96bdff8abe7264bf196"
+            };
+            const { owner, repo } = context.repo;
+            for (const [branch, headSha] of Object.entries(expected)) {
+              if (branch === "main" || branch === "Convert-tuya2esphome-ota") {
+                core.setFailed("Refusing to delete protected branch: " + branch);
+                return;
+              }
+              const ref = await github.rest.git.getRef({ owner, repo, ref: "heads/" + branch });
+              if (ref.data.object.sha !== headSha) {
+                core.setFailed("Branch changed unexpectedly: " + branch);
+                return;
+              }
+              const compare = await github.rest.repos.compareCommits({ owner, repo, base: "main", head: branch });
+              if (compare.data.ahead_by !== 0) {
+                core.setFailed("Unmerged commits; refuse delete: " + branch);
+                return;
+              }
+              await github.rest.git.deleteRef({ owner, repo, ref: "heads/" + branch });
+              core.info("Deleted fully merged branch " + branch);
+            }
