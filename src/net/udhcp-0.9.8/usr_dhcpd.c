@@ -197,7 +197,9 @@ static void udhcpd_start(void *arg)
 		server_config.start = server_param->addr_start;
 		server_config.end = server_param->addr_end;
 	}
-	if ((ntohl(server_param->addr_end) - ntohl(server_param->addr_start))  > (server_config.max_leases - 1))
+	if (server_param != NULL && server_config.max_leases > 0 &&
+	    ntohl(server_param->addr_end) >= ntohl(server_param->addr_start) &&
+	    (ntohl(server_param->addr_end) - ntohl(server_param->addr_start)) > (server_config.max_leases - 1))
 		server_config.end = htonl((ntohl(server_config.start) + server_config.max_leases - 1));
 
 	leases = malloc(sizeof(struct dhcpOfferedAddr) * server_config.max_leases);
