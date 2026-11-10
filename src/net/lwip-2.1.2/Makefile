@@ -21,6 +21,7 @@ DIRS := $(filter-out $(DIRS_IGNORE),$(DIRS_ALL))
 SRCS := $(sort $(basename $(foreach dir,$(DIRS),$(wildcard $(dir)/*.[csS]))))
 SRCS += src/apps/mqtt/mqtt
 SRCS += src/apps/mdns/mdns
+SRCS += src/apps/sntp/sntp
 
 OBJS := $(addsuffix .o,$(SRCS))
 
