@@ -1309,6 +1309,8 @@
  */
 #define LWIP_NUM_NETIF_CLIENT_DATA      1
 #define LWIP_MDNS_RESPONDER             1
+/* ESPHome announces up to one service each for api, web_server, prometheus and sendspin. */
+#define MDNS_MAX_SERVICES               4
 #define MEMP_NUM_SYS_TIMEOUT            LWIP_NUM_SYS_TIMEOUT_INTERNAL + 8
 /**
  * @}
