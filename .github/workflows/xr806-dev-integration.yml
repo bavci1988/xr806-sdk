@@ -121,6 +121,7 @@ jobs:
           cp esphome-xr806/tests/component_tests/xr806/config/ota.yaml ci-tests/xr806_ota.yaml
           cp esphome-xr806/tests/component_tests/xr806/config/web_server_ota_standby.yaml ci-tests/xr806_web_ota_standby.yaml
           cp esphome-xr806/tests/component_tests/xr806/config/http_request.yaml ci-tests/xr806_http_update.yaml
+          cp esphome-xr806/tests/component_tests/xr806/config/http_request_standby.yaml ci-tests/xr806_http_standby.yaml
       - name: Include XR806 HTTP and captive portal configurations
         run: |
           cat > ci-tests/xr806_web_server.yaml <<'YAML'
@@ -180,7 +181,7 @@ jobs:
               -Iesphome-xr806 "$test" -lgtest -lgtest_main -pthread -o /tmp/esphome-gtest
             /tmp/esphome-gtest
           done
-      - name: Compile nine firmwares including web, captive portal, web OTA and HTTP update via pre-provisioned SDK
+      - name: Compile ten firmwares including web, captive portal, web OTA, HTTP update and HTTP with standby via pre-provisioned SDK
         env:
           XR806_SDK_SOURCE_DIR: ${{ github.workspace }}/sdk
           XR806_SDK_EXPECTED_COMMIT: ${{ github.sha }}
@@ -197,6 +198,7 @@ jobs:
           /opt/esphome-venv/bin/python -m esphome compile ci-tests/xr806_ap_web_server.yaml
           /opt/esphome-venv/bin/python -m esphome compile ci-tests/xr806_web_ota_standby.yaml
           /opt/esphome-venv/bin/python -m esphome compile ci-tests/xr806_http_update.yaml
+          /opt/esphome-venv/bin/python -m esphome compile ci-tests/xr806_http_standby.yaml
       - name: Verify AWIH output and image consistency
         run: |
           set -euo pipefail
