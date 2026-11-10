@@ -365,7 +365,9 @@
  * per active UDP "connection".
  * (requires the LWIP_UDP option)
  */
-#define MEMP_NUM_UDP_PCB                3
+/* DHCP, DNS, mDNS, SNTP, captive DNS, the DHCP server and application UDP
+ * sockets each hold one; three ran out as soon as several were in use. */
+#define MEMP_NUM_UDP_PCB                8
 
 /**
  * MEMP_NUM_TCP_PCB: the number of simultaneously active TCP connections.
@@ -2615,5 +2617,17 @@
 /**
  * @}
  */
+
+/*
+ * SNTP client (src/apps/sntp), used by ESPHome's sntp time source.
+ * Servers are given by name, and a reply sets the time of day directly.
+ */
+#define SNTP_SERVER_DNS                 1
+#define SNTP_MAX_SERVERS                3
+#define SNTP_SET_SYSTEM_TIME_US(sec, us) \
+	do { \
+		struct timeval sntp_tv = { .tv_sec = (time_t)(sec), .tv_usec = (suseconds_t)(us) }; \
+		settimeofday(&sntp_tv, NULL); \
+	} while (0)
 
 #endif /* LWIP_HDR_LWIPOPTS_H */
