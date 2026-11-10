@@ -3,7 +3,7 @@ name: XR806 Firmware CI (SDK main + ESPHome dev)
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches: [main, feature/xr806-web-softap-captive]
     paths:
       - .github/workflows/xr806-dev-integration.yml
       - gcc.mk
@@ -99,6 +99,47 @@ jobs:
       - name: Include the ESPHome XR806 OTA test configuration
         run: |
           cp esphome-xr806/tests/component_tests/xr806/config/ota.yaml ci-tests/xr806_ota.yaml
+      - name: Include XR806 HTTP and captive portal configurations
+        run: |
+          cat > ci-tests/xr806_web_server.yaml <<'YAML'
+          esphome:
+            name: xr806-web-server
+          xr806:
+            board: wxu
+          wifi:
+            ssid: XR806-CI-NO-REAL-NETWORK
+            password: test-only-not-secret
+          web_server:
+            port: 80
+            version: 2
+          YAML
+          cat > ci-tests/xr806_captive.yaml <<'YAML'
+          esphome:
+            name: xr806-captive
+          xr806:
+            board: wxu
+          wifi:
+            ssid: XR806-CI-NO-REAL-NETWORK
+            password: test-only-not-secret
+            ap:
+              ssid: XR806-Captive-Test
+              password: test-only-not-secret
+          captive_portal:
+          YAML
+          cat > ci-tests/xr806_ap_web_server.yaml <<'YAML'
+          esphome:
+            name: xr806-ap-web
+          xr806:
+            board: wxu
+          wifi:
+            ap:
+              ssid: XR806-AP-Web
+              password: test-only-not-secret
+          web_server:
+            port: 80
+            version: 2
+            local: true
+          YAML
       - name: Run XR806 platform host tests
         run: |
           set -euo pipefail
@@ -108,7 +149,7 @@ jobs:
             /tmp/host-test
             echo "PASS $(basename "$test")"
           done
-      - name: Compile four firmwares using pre-provisioned private SDK
+      - name: Compile seven firmwares including web/captive via pre-provisioned SDK
         env:
           XR806_SDK_SOURCE_DIR: ${{ github.workspace }}/sdk
           XR806_SDK_EXPECTED_COMMIT: ${{ github.sha }}
@@ -120,6 +161,9 @@ jobs:
           /opt/esphome-venv/bin/python -m esphome compile ci-tests/xr806_irq_linkprobe.yaml
           /opt/esphome-venv/bin/python -m esphome compile ci-tests/xr806_wlan_smoke.yaml
           /opt/esphome-venv/bin/python -m esphome compile ci-tests/xr806_ota.yaml
+          /opt/esphome-venv/bin/python -m esphome compile ci-tests/xr806_web_server.yaml
+          /opt/esphome-venv/bin/python -m esphome compile ci-tests/xr806_captive.yaml
+          /opt/esphome-venv/bin/python -m esphome compile ci-tests/xr806_ap_web_server.yaml
       - name: Verify AWIH output and image consistency
         run: |
           set -euo pipefail
