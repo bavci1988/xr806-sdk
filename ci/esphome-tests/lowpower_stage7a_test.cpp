@@ -17,6 +17,8 @@ int main() {
   p.set_ota_idle(true);
   p.set_api_idle(true);
   p.set_mdns_idle(true);
+  // Standard HTTP/SSE is an independent standby blocker since PR #16.
+  p.set_http_idle(true);
   p.set_wake_source_ready(true);
   p.set_scheduler_idle(true);
   assert(p.can_enter_standby());  // Generic WXU without an external MCU.
@@ -42,6 +44,11 @@ int main() {
   p.set_mdns_idle(false);
   assert(!p.can_enter_standby());
   p.set_mdns_idle(true);
+  p.set_http_idle(false);
+  assert(!p.can_enter_standby());
+  assert((p.blockers() & XR806LowPowerPolicy::HTTP_BUSY) != 0);
+  p.set_http_idle(true);
+  assert(p.can_enter_standby());
   p.set_ota_idle(false);
   assert(!p.can_enter_standby());
   p.set_ota_idle(true);
