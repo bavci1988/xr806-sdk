@@ -28,6 +28,7 @@ void release_all_owner_votes(Policy &p) {
   p.set_network_idle(true);
   p.set_api_idle(true);
   p.set_mdns_idle(true);
+  p.set_http_idle(true);
   p.set_ota_idle(true);
   p.set_scheduler_idle(true);
   p.set_wake_source_ready(true);
@@ -87,8 +88,8 @@ void test_uart_ack_and_reports() {
 }
 
 void test_wake_and_owner_interleavings() {
-  constexpr std::array<uint32_t, 5> owner_bits{Policy::UART_BUSY, Policy::NETWORK_BUSY, Policy::API_BUSY,
-                                               Policy::MDNS_BUSY, Policy::OTA_BUSY};
+  constexpr std::array<uint32_t, 6> owner_bits{Policy::UART_BUSY, Policy::NETWORK_BUSY, Policy::API_BUSY,
+                                               Policy::MDNS_BUSY, Policy::OTA_BUSY, Policy::HTTP_BUSY};
   for (uint32_t bit : owner_bits) {
     Policy policy;
     release_all_owner_votes(policy);
@@ -113,6 +114,9 @@ void test_wake_and_owner_interleavings() {
       case Policy::OTA_BUSY:
         policy.set_ota_idle(false);
         break;
+      case Policy::HTTP_BUSY:
+        policy.set_http_idle(false);
+        break;
       default:
         assert(false);
         break;
@@ -133,7 +137,7 @@ void test_wake_and_owner_interleavings() {
   stable.end_commit();
   assert(stable.can_enter_standby());
 
-  // All five votes can return idle, yet the OLD admission claim is invalid.
+  // All six votes can return idle, yet the OLD admission claim is invalid.
   Policy reopened;
   release_all_owner_votes(reopened);
   const uint32_t first_epoch = reopened.generation();
@@ -182,7 +186,7 @@ void test_wake_and_owner_interleavings() {
 }
 
 void test_exhaustive_owner_permutations() {
-  std::array<uint8_t, 5> events{{0, 1, 2, 3, 4}};
+  std::array<uint8_t, 6> events{{0, 1, 2, 3, 4, 5}};
   size_t permutations = 0;
   do {
     Policy p;
@@ -212,6 +216,10 @@ void test_exhaustive_owner_permutations() {
           p.set_ota_idle(false);
           p.set_ota_idle(true);
           break;
+        case 5:
+          p.set_http_idle(false);
+          p.set_http_idle(true);
+          break;
         default:
           assert(false);
           break;
@@ -224,7 +232,7 @@ void test_exhaustive_owner_permutations() {
     p.end_commit();
     ++permutations;
   } while (std::next_permutation(events.begin(), events.end()));
-  assert(permutations == 120);
+  assert(permutations == 720);
 }
 
 void test_async_lwip_suspend_epochs() {
