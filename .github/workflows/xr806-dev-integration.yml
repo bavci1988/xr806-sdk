@@ -97,6 +97,17 @@ jobs:
             power_save_mode: light
           logger:
             level: VERY_VERBOSE
+          udp:
+            addresses: 239.255.0.1
+            listen_address: 239.255.0.1
+          packet_transport:
+            - platform: udp
+              sensors:
+                - xr806_ci_value
+          sensor:
+            - platform: template
+              id: xr806_ci_value
+              lambda: return 42.0;
           YAML
       - name: Include the ESPHome XR806 OTA test configurations
         run: |
