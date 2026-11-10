@@ -108,8 +108,11 @@ jobs:
             - platform: template
               id: xr806_ci_value
               lambda: return 42.0;
+          api:
           time:
             - platform: sntp
+              timezone: Europe/Berlin
+            - platform: homeassistant
               timezone: Europe/Berlin
           syslog:
           YAML
