@@ -108,6 +108,10 @@ jobs:
             - platform: template
               id: xr806_ci_value
               lambda: return 42.0;
+          time:
+            - platform: sntp
+              timezone: Europe/Berlin
+          syslog:
           YAML
       - name: Include the ESPHome XR806 OTA test configurations
         run: |
