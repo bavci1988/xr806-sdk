@@ -229,6 +229,13 @@ jobs:
             arm-none-eabi-nm "$base/xr806/app.elf" | grep -q ' T __wrap___libc_init_array$'
             sha256sum "$fw"
           done
+      - name: Check that the committed autoconf.h matches .config
+        run: |
+          set -euo pipefail
+          # Project objects compile before the lib step regenerates autoconf.h, so a stale
+          # committed copy silently builds them with other options.
+          generated=ci-tests/.esphome/build/xr806-trv16-uart0-lp/xr806/sdk-work/include/generated/autoconf.h
+          diff <(grep '^#define' sdk/include/generated/autoconf.h | sort) <(grep '^#define' "$generated" | sort)
       - name: Validate stamped ROM OTA geometry and usable native XZ package
         run: |
           set -euo pipefail
