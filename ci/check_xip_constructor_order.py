@@ -42,11 +42,14 @@ def cplusplus_is_enabled(elf: Path) -> bool:
 def verify(elf: Path) -> None:
     disasm = subprocess.check_output(["arm-none-eabi-objdump", "-d", str(elf)], text=True)
     functions = functions_in(disasm)
-    for symbol in ("_start", "main", "__wrap___libc_init_array"):
+    # ARM newlib aliases _start to _mainCRTStartup. objdump may choose
+    # the latter as its single disassembly label for the shared address.
+    start_symbol = "_start" if "_start" in functions else "_mainCRTStartup"
+    for symbol in (start_symbol, "main", "__wrap___libc_init_array"):
         if symbol not in functions:
             raise AssertionError(f"{elf}: missing linked function {symbol}")
 
-    startup = references(functions["_start"])
+    startup = references(functions[start_symbol])
     if "__wrap___libc_init_array" not in startup:
         raise AssertionError(f"{elf}: CRT _start does not call the constructor wrapper: {startup}")
     if "__libc_init_array" in startup:
