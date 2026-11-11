@@ -128,6 +128,7 @@ jobs:
           cp esphome-xr806/tests/component_tests/xr806/config/mqtt.yaml ci-tests/xr806_mqtt.yaml
           cp esphome-xr806/tests/component_tests/xr806/config/mqtt_standby.yaml ci-tests/xr806_mqtt_standby.yaml
           cp esphome-xr806/tests/component_tests/xr806/config/mqtt_tls.yaml ci-tests/xr806_mqtt_tls.yaml
+          cp esphome-xr806/tests/component_tests/tuya/config/low_power_v0.yaml ci-tests/xr806_tuya_low_power.yaml
       - name: Include XR806 HTTP and captive portal configurations
         run: |
           cat > ci-tests/xr806_web_server.yaml <<'YAML'
@@ -187,7 +188,7 @@ jobs:
               -Iesphome-xr806 "$test" -lgtest -lgtest_main -pthread -o /tmp/esphome-gtest
             /tmp/esphome-gtest
           done
-      - name: Compile sixteen firmwares including web, captive portal, web OTA, HTTP update, HTTP with standby, debug, Prometheus, UART, MQTT, MQTT with standby and MQTT over TLS via pre-provisioned SDK
+      - name: Compile seventeen firmwares including web, captive portal, web OTA, HTTP update, HTTP with standby, debug, Prometheus, UART, MQTT, MQTT with standby, MQTT over TLS and Tuya low-power via pre-provisioned SDK
         env:
           XR806_SDK_SOURCE_DIR: ${{ github.workspace }}/sdk
           XR806_SDK_EXPECTED_COMMIT: ${{ github.sha }}
@@ -211,6 +212,7 @@ jobs:
           /opt/esphome-venv/bin/python -m esphome compile ci-tests/xr806_mqtt.yaml
           /opt/esphome-venv/bin/python -m esphome compile ci-tests/xr806_mqtt_standby.yaml
           /opt/esphome-venv/bin/python -m esphome compile ci-tests/xr806_mqtt_tls.yaml
+          /opt/esphome-venv/bin/python -m esphome compile ci-tests/xr806_tuya_low_power.yaml
       - name: Verify AWIH output and image consistency
         run: |
           set -euo pipefail
