@@ -211,6 +211,13 @@ jobs:
           /opt/esphome-venv/bin/python -m esphome compile ci-tests/xr806_mqtt.yaml
           /opt/esphome-venv/bin/python -m esphome compile ci-tests/xr806_mqtt_standby.yaml
           /opt/esphome-venv/bin/python -m esphome compile ci-tests/xr806_mqtt_tls.yaml
+      - name: Verify ESPHome constructors run only after XR806 XIP is ready
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          elfs=(ci-tests/.esphome/build/*/xr806/app.elf)
+          test "${#elfs[@]}" -ge 16
+          python3 sdk/ci/check_xip_constructor_order.py "${elfs[@]}"
       - name: Verify AWIH output and image consistency
         run: |
           set -euo pipefail
