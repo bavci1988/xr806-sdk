@@ -47,6 +47,9 @@
 #define MBEDTLS_CIPHER_MODE_CBC
 #define MBEDTLS_PKCS1_V15
 #define MBEDTLS_KEY_EXCHANGE_RSA_ENABLED
+/* Forward secrecy, and brokers or servers with ECDSA certificates (MQTT over TLS, HTTPS) */
+#define MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
+#define MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
 #define MBEDTLS_SSL_PROTO_SSL3
 #define MBEDTLS_SSL_PROTO_TLS1
 #define MBEDTLS_SSL_PROTO_TLS1_1
@@ -82,6 +85,10 @@
 
 #define MBEDTLS_ECP_C
 #define MBEDTLS_ECDH_C
+#define MBEDTLS_ECDSA_C
+/* AES-GCM suites and SHA-384 signatures, which current servers prefer */
+#define MBEDTLS_GCM_C
+#define MBEDTLS_SHA512_C
 
 #define MBEDTLS_ECP_DP_SECP192R1_ENABLED
 #define MBEDTLS_ECP_DP_SECP224R1_ENABLED
