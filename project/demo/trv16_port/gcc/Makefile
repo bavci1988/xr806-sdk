@@ -54,6 +54,12 @@ OBJS := $(addsuffix .o,$(SRCS))
 #   - define your own "LINKER_SCRIPT" to override the default one
 LINKER_SCRIPT := appos_esphome.ld
 
+# newlib's early __libc_init_array() cannot invoke ESPHome constructors in
+# XIP flash until platform_init_level0() has configured the XIP controller.
+# The project's main.c provides a conditional wrapper and runs constructors
+# after platform_init(). Non-ESPHome builds delegate to the original routine.
+LD_FLAGS += -Wl,--wrap,__libc_init_array
+
 # image config file
 #   - relative to "../image/$(CONFIG_CHIP_TYPE)/", eg. "../image/xr806/"
 #   - define your own "IMAGE_CFG" to override the default one
