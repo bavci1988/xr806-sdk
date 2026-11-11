@@ -252,6 +252,17 @@ SECTIONS
         ../shared*/be*.o (.text .text.* .rodata .rodata.*)
         ../shared/src*.o (.text .text.* .rodata .rodata.*)
 
+        /*
+         * ESPHome components and their crypto archives, which run in task context.
+         * The gpio component holds interrupt handlers, and UART is polled on every
+         * loop pass, so both stay in RAM. The ESPHome core, GPIO pin, wake and
+         * standby objects sit directly in obj/ and are not matched here.
+         */
+        EXCLUDE_FILE (*/obj/auto/components/uart/* */obj/auto/components/gpio/*) */obj/auto/components/*.o (.text .text.* .rodata .rodata.*)
+        */obj/main.o (.text .text.* .rodata .rodata.*)
+        *libnoise_c.a: (.text .text.* .rodata .rodata.*)
+        *libsodium.a: (.text .text.* .rodata .rodata.*)
+
         *(.xip_text* .xip_rodata*)
 
 #if defined(CONFIG_BLEHOST)
