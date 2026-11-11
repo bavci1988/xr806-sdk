@@ -1388,7 +1388,7 @@
  * The stack size value itself is platform-dependent, but is passed to
  * sys_thread_new() when the thread is created.
  */
-#define TCPIP_THREAD_STACKSIZE          (2 * 1024)
+#define TCPIP_THREAD_STACKSIZE          (4 * 1024) /* mDNS answers overflowed 2 KiB */
 
 /**
  * TCPIP_THREAD_PRIO: The priority assigned to the main tcpip thread.
