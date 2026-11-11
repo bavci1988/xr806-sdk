@@ -35,6 +35,7 @@ int main() {
   p.set_api_idle(true);
   p.set_mdns_idle(true);
   p.set_http_idle(true);
+  p.set_mqtt_idle(true);
   p.set_scheduler_idle(true);
   assert(!p.can_enter_standby());  // Wake source not armed.
   p.set_wake_source_ready(true);

@@ -41,6 +41,7 @@ int main() {
   p.set_ota_idle(true);
   p.set_mdns_idle(true);
   p.set_http_idle(true);
+  p.set_mqtt_idle(true);
   p.set_mcu_synchronized(true);
   p.request_standby(true);
   p.set_wake_source_ready(true);
@@ -78,6 +79,7 @@ int main() {
     q.set_mcu_synchronized(true);
     q.set_ota_idle(true);
     q.set_http_idle(true);
+    q.set_mqtt_idle(true);
     q.request_standby(true);
     q.set_scheduler_idle(true);
     q.set_wake_source_ready(true);

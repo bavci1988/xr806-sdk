@@ -29,6 +29,7 @@ void release_all_owner_votes(Policy &p) {
   p.set_api_idle(true);
   p.set_mdns_idle(true);
   p.set_http_idle(true);
+  p.set_mqtt_idle(true);
   p.set_ota_idle(true);
   p.set_scheduler_idle(true);
   p.set_wake_source_ready(true);
@@ -88,8 +89,9 @@ void test_uart_ack_and_reports() {
 }
 
 void test_wake_and_owner_interleavings() {
-  constexpr std::array<uint32_t, 6> owner_bits{Policy::UART_BUSY, Policy::NETWORK_BUSY, Policy::API_BUSY,
-                                               Policy::MDNS_BUSY, Policy::OTA_BUSY, Policy::HTTP_BUSY};
+  constexpr std::array<uint32_t, 7> owner_bits{Policy::UART_BUSY, Policy::NETWORK_BUSY, Policy::API_BUSY,
+                                               Policy::MDNS_BUSY, Policy::OTA_BUSY,     Policy::HTTP_BUSY,
+                                               Policy::MQTT_BUSY};
   for (uint32_t bit : owner_bits) {
     Policy policy;
     release_all_owner_votes(policy);
@@ -116,6 +118,9 @@ void test_wake_and_owner_interleavings() {
         break;
       case Policy::HTTP_BUSY:
         policy.set_http_idle(false);
+        break;
+      case Policy::MQTT_BUSY:
+        policy.set_mqtt_idle(false);
         break;
       default:
         assert(false);
