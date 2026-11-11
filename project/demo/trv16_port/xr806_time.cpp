@@ -21,9 +21,18 @@ extern "C" void xr806_delay(uint32_t ms) {
     }
 }
 
-// Mikrosekunden seit Systemstart (RTC Free Running Counter)
+// The RTC free-running counter keeps counting through a software reset and only starts at 0 after
+// power loss. Its value at boot is subtracted, so the time below starts at 0 on every boot and
+// stays continuous across standby.
+static uint64_t s_boot_us;
+
+extern "C" void xr806_time_mark_boot(void) {
+    s_boot_us = HAL_RTC_GetFreeRunTime();
+}
+
+// Microseconds since boot
 extern "C" uint64_t xr806_micros64(void) {
-    return HAL_RTC_GetFreeRunTime();
+    return HAL_RTC_GetFreeRunTime() - s_boot_us;
 }
 
 // Kurze Wartezeiten mit dem XR806-Hardwaretreiber

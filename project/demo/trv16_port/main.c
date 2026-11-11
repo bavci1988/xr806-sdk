@@ -47,8 +47,11 @@ void __wrap___libc_init_array(void)
 {
 }
 
+extern void xr806_time_mark_boot(void);
+
 int main(void)
 {
+    xr806_time_mark_boot();
     platform_init();
     __real___libc_init_array();
 
