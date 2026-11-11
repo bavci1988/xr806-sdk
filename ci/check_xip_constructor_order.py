@@ -49,6 +49,15 @@ def verify(elf: Path) -> None:
         if symbol not in functions:
             raise AssertionError(f"{elf}: missing linked function {symbol}")
 
+    # None of these entry-path functions may itself execute from XIP:
+    # they run before HAL_Xip_Init() has mapped flash at 0x00400000.
+    for symbol in (start_symbol, "main", "platform_init", "__wrap___libc_init_array"):
+        match = re.search(rf"(?m)^([0-9a-fA-F]+) <{re.escape(symbol)}>:", disasm)
+        if match is None:
+            raise AssertionError(f"{elf}: no linked address for early function {symbol}")
+        if int(match.group(1), 16) >= 0x00400000:
+            raise AssertionError(f"{elf}: early function {symbol} is placed in XIP flash")
+
     startup = references(functions[start_symbol])
     if "__wrap___libc_init_array" not in startup:
         raise AssertionError(f"{elf}: CRT _start does not call the constructor wrapper: {startup}")
