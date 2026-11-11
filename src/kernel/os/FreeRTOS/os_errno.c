@@ -54,6 +54,10 @@ void OS_SetErrno(int err)
 
 #define OS_ERRNO_LOCATION_IDX    0
 
+/* newlib's errno location. Code built against newlib's <errno.h>, such as
+ * ESPHome, reads errno there, not in the thread-local slot. */
+extern int *__errno(void);
+
 int OS_GetErrno(void)
 {
 	return (int)pvTaskGetThreadLocalStoragePointer(NULL, OS_ERRNO_LOCATION_IDX);
@@ -62,6 +66,7 @@ int OS_GetErrno(void)
 void OS_SetErrno(int err)
 {
 	vTaskSetThreadLocalStoragePointer(NULL, OS_ERRNO_LOCATION_IDX, (void *)err);
+	*__errno() = err;
 }
 
 #endif
