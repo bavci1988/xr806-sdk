@@ -116,6 +116,9 @@ jobs:
               timezone: Europe/Berlin
           syslog:
           YAML
+      - name: Include hardware-only bare WXU WiFi bench config
+        run: |
+          cp sdk/bench/trv16-wxu-bare.yaml ci-tests/xr806_bare_wifi.yaml
       - name: Include the ESPHome XR806 OTA test configurations
         run: |
           cp esphome-xr806/tests/component_tests/xr806/config/ota.yaml ci-tests/xr806_ota.yaml
@@ -196,6 +199,7 @@ jobs:
           export CC_DIR="$(dirname "$(command -v arm-none-eabi-gcc)")"
           echo "Using ARM GCC toolchain: $CC_DIR"
           /opt/esphome-venv/bin/python -m esphome compile ci-tests/xr806_trv16_uart0_lowpower_test.yaml
+          /opt/esphome-venv/bin/python -m esphome compile ci-tests/xr806_bare_wifi.yaml
           /opt/esphome-venv/bin/python -m esphome compile ci-tests/xr806_irq_linkprobe.yaml
           /opt/esphome-venv/bin/python -m esphome compile ci-tests/xr806_wlan_smoke.yaml
           /opt/esphome-venv/bin/python -m esphome compile ci-tests/xr806_ota.yaml
@@ -258,6 +262,7 @@ jobs:
           retention-days: 14
           path: |
             ci-tests/.esphome/build/xr806-trv16-uart0-lp/.pioenvs/xr806-trv16-uart0-lp/firmware.bin
+            ci-tests/.esphome/build/trv16-wxu-bare/.pioenvs/trv16-wxu-bare/firmware.bin
             ci-tests/.esphome/build/xr806-irq-linkprobe/.pioenvs/xr806-irq-linkprobe/firmware.bin
             ci-tests/.esphome/build/xr806-wlan-probe/.pioenvs/xr806-wlan-probe/firmware.bin
             ci-tests/.esphome/build/xr806-ota/.pioenvs/xr806-ota/firmware.bin
