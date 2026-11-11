@@ -166,14 +166,22 @@ int sysinfo_init(void)
 		image_start = iop->addr[i];
 		if (i == 0)
 			image_end = iop->addr[i] + IMAGE_AREA_SIZE(iop->img_max_size);
-		else
-#if (defined(CONFIG_OTA_POLICY_PINGPONG))
-			image_end = iop->addr[i] + IMAGE_AREA_SIZE(iop->img_max_size);
-#elif (defined(CONFIG_OTA_POLICY_IMAGE_COMPRESSION))
-			image_end = iop->addr[i] + IMAGE_AREA_SIZE(iop->img_xz_max_size);
-#else
-#error "Invalid OTA policy!"
-#endif
+		else {
+			/*
+			 * The image header is authoritative for the second OTA slot.
+			 * image_init() uses img_xz_max_size when the header advertises
+			 * compression, irrespective of compile-time OTA policy flags.
+			 *
+			 * Keep this sysinfo overlap guard in sync with image_init():
+			 * a stale or conflicting CONFIG_OTA_POLICY_PINGPONG flag
+			 * must not turn a 640 KiB compressed slot into a fictitious
+			 * ~1244 KiB image extending past the 2 MiB WXU flash.
+			 */
+			uint32_t image_size_kib =
+			    (iop->img_xz_max_size != IMAGE_INVALID_SIZE) ?
+			    iop->img_xz_max_size : iop->img_max_size;
+			image_end = image_start + IMAGE_AREA_SIZE(image_size_kib);
+		}
 		if (PRJCONF_SYSINFO_ADDR >= image_start && PRJCONF_SYSINFO_ADDR < image_end) {
 			SYSINFO_ERR("sysinfo: %#x has overlay image%d: %#x - %#x\n",
 			    PRJCONF_SYSINFO_ADDR, i, image_start, image_end);
