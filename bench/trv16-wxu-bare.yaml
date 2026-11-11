@@ -1,0 +1,24 @@
+# Hardware-only test of an unsoldered Tuya WXU / Allwinner XR806.
+# No Tuya MCU, no GPIO-controlled peripherals, no climate, no datapoints,
+# no UART0 ownership, no standby or OTA.
+# The only goal is to see whether the WLAN core boots and advertises an AP.
+# Connect a 3.3V supply; read the boot log on UART2 TX (WXU pin 7).
+# PB02 must be floating/high during normal boot.
+#
+# AP credentials are FOR BENCH USE ONLY; change before deployment.
+esphome:
+  name: trv16-wxu-bare
+  friendly_name: WXU Bare Bench
+
+xr806:
+  board: wxu
+
+logger:
+  level: DEBUG
+
+wifi:
+  ap:
+    ssid: "WXU-Bare-Bench"
+    password: "WXU-Lab-ChangeMe"
+
+captive_portal:
