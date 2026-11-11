@@ -31,6 +31,24 @@
 
 extern int trv16_cpp_test(void);
 
+/*
+ * newlib's _start calls __libc_init_array() before the main FreeRTOS thread,
+ * while ESPHome global C++ constructors may have been placed in flash/XIP.
+ * That flash mapping is only enabled in platform_init_level0().
+ *
+ * With the project's --wrap,__libc_init_array linker option, this function
+ * suppresses the premature invocation for ESPHome. The plain SDK build
+ * delegates to newlib and therefore retains its original startup order.
+ */
+extern void __real___libc_init_array(void);
+
+void __wrap___libc_init_array(void)
+{
+#ifndef TRV16_USE_ESPHOME
+    __real___libc_init_array();
+#endif
+}
+
 #ifdef TRV16_USE_ESPHOME
 extern void xr806_esphome_run(void);
 #endif
@@ -40,6 +58,15 @@ int main(void)
     platform_init();
 
 #ifdef TRV16_USE_ESPHOME
+    /*
+     * CONFIG_CPLUSPLUS=y: vendor platform_init_level2() already calls
+     * cpp_init() after XIP is ready; do not execute constructors twice.
+     * Otherwise run newlib's preinit/init arrays exactly once, now that
+     * the flash XIP mapping is active.
+     */
+#ifndef CONFIG_CPLUSPLUS
+    __real___libc_init_array();
+#endif
     xr806_esphome_run();
 #else
     (void)trv16_cpp_test();
