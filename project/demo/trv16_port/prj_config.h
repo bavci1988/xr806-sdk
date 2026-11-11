@@ -141,4 +141,3 @@ extern "C" {
 
 #endif /* _PRJ_CONFIG_H_ */
 
-#define PRJCONF_TRV16_NO_STDOUT 1
