@@ -225,6 +225,8 @@ jobs:
             test "$(head -c 4 "$fw")" = AWIH
             # firmware.bin is firmware.img with the OTA layout added to the 64-byte BOOT header.
             cmp -i 64 "$fw" "$img"
+            # Static constructors may live in XIP, so startup must defer them until main().
+            arm-none-eabi-nm "$base/xr806/app.elf" | grep -q ' T __wrap___libc_init_array$'
             sha256sum "$fw"
           done
       - name: Validate stamped ROM OTA geometry and usable native XZ package
