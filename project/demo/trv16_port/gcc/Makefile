@@ -54,6 +54,9 @@ OBJS := $(addsuffix .o,$(SRCS))
 #   - define your own "LINKER_SCRIPT" to override the default one
 LINKER_SCRIPT := appos_esphome.ld
 
+# Static constructors run from main() after XIP is up; see main.c.
+LD_FLAGS += -Wl,--wrap,__libc_init_array
+
 # image config file
 #   - relative to "../image/$(CONFIG_CHIP_TYPE)/", eg. "../image/xr806/"
 #   - define your own "IMAGE_CFG" to override the default one

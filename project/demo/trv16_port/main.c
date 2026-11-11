@@ -35,9 +35,22 @@ extern int trv16_cpp_test(void);
 extern void xr806_esphome_run(void);
 #endif
 
+/*
+ * newlib's startup code runs __libc_init_array() before main(), when XIP flash
+ * is not mapped yet. ESPHome links C++ code into XIP, so a static constructor
+ * there faulted before any output. The startup call is a no-op; the constructors
+ * run once platform_init() has set up XIP, like the SDK's own cpp_init().
+ */
+extern void __real___libc_init_array(void);
+
+void __wrap___libc_init_array(void)
+{
+}
+
 int main(void)
 {
     platform_init();
+    __real___libc_init_array();
 
 #ifdef TRV16_USE_ESPHOME
     xr806_esphome_run();
