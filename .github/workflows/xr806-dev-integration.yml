@@ -227,6 +227,8 @@ jobs:
             cmp -i 64 "$fw" "$img"
             # Static constructors may live in XIP, so startup must defer them until main().
             arm-none-eabi-nm "$base/xr806/app.elf" | grep -q ' T __wrap___libc_init_array$'
+            # The PHY reciprocal must be the fixed one from trv16_port, not the library loop.
+            arm-none-eabi-nm "$base/xr806/app.elf" | grep -q ' T PHY_RF_DPD_RecipFunc$'
             sha256sum "$fw"
           done
       - name: Check that the committed autoconf.h matches .config

@@ -67,3 +67,20 @@ LD_FLAGS += -Wl,--wrap,__libc_init_array
 
 # project make rules
 include $(PRJ_MAKE_RULES)
+
+# ----------------------------------------------------------------------------
+# WLAN PHY fix
+# ----------------------------------------------------------------------------
+# PHY_RF_DPD_RecipFunc() in the vendor PHY library loops forever for an input
+# of 0 ("[FW-DBG] DbgId = 21"). Link a copy of the library in which that symbol
+# is weak, so the fixed version in ../xr806_phy_fix.c is used instead.
+TRV16_PHY_LIB_SRC := $(ROOT_PATH)/lib/$(PLATFORM_RELATIVE_PATH)/libxrwireless_phy.a
+TRV16_PHY_LIB_DIR := $(CURDIR)/phy_fix
+TRV16_PHY_LIB := $(TRV16_PHY_LIB_DIR)/libxrwireless_phy.a
+
+$(TRV16_PHY_LIB): $(TRV16_PHY_LIB_SRC)
+	@mkdir -p $(@D)
+	$(OBJCOPY) --weaken-symbol=PHY_RF_DPD_RecipFunc $< $@
+
+LIBRARY_PATHS := -L$(TRV16_PHY_LIB_DIR) $(LIBRARY_PATHS)
+$(PROJECT).$(ELF_EXT): $(TRV16_PHY_LIB)
