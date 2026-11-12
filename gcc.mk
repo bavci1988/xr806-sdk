@@ -5,7 +5,13 @@
 # ----------------------------------------------------------------------------
 # cross compiler
 # ----------------------------------------------------------------------------
-CC_DIR ?= /home/birol/gcc-arm-none-eabi-8-2019-q3-update/bin
+# Find the installed ARM cross-compiler via PATH instead of a developer-specific path.
+# An explicit CC_DIR=/path/to/bin still takes precedence for custom toolchains.
+XR806_GCC_PATH := $(shell command -v arm-none-eabi-gcc 2>/dev/null)
+CC_DIR ?= $(patsubst %/,%,$(dir $(XR806_GCC_PATH)))
+ifeq ($(strip $(CC_DIR)),)
+  $(error arm-none-eabi-gcc not found in PATH; install the ARM cross-toolchain or set CC_DIR)
+endif
 CC_PREFIX := $(CC_DIR)/arm-none-eabi-
 
 AS      := $(CC_PREFIX)as
