@@ -305,8 +305,20 @@ static void platform_wdg_init(void)
 	HAL_WDG_Init(&param);
 }
 
+/*
+ * An application that feeds the watchdog from its own main loop overrides this
+ * and returns 0 once it has taken over. The timer then stops feeding, so a hung
+ * application lets the watchdog reset the chip instead of running on dead.
+ */
+__weak int platform_wdg_timer_feeds(void)
+{
+	return 1;
+}
+
 static void platform_wdg_feed(void *arg)
 {
+	if (!platform_wdg_timer_feeds())
+		return;
 	FWK_DBG("feed wdg @ %u sec\n", OS_GetTime());
 	HAL_WDG_Feed();
 }
