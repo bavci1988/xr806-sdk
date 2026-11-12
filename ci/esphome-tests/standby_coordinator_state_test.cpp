@@ -61,6 +61,10 @@ int main() {
   assert(!XR806StandbyCoordinatorState::expected_wake(0, (1u << 16) | (1u << 27), 10));
   assert(!XR806StandbyCoordinatorState::expected_wake(0, (1u << 16) | (1u << 28), 10));
   assert(!XR806StandbyCoordinatorState::expected_wake(0, 0, 10));
+  // With the WLAN link kept up, received network data is an expected wake source; otherwise it is not.
+  assert(XR806StandbyCoordinatorState::expected_wake(0, 1u << 17, 10, true));
+  assert(!XR806StandbyCoordinatorState::expected_wake(0, 1u << 17, 10));
+  assert(!XR806StandbyCoordinatorState::expected_wake(0, (1u << 17) | (1u << 28), 10, true));
 
   state.finished(10500, false);
   assert(state.failures() == 1);
