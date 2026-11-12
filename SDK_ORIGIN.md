@@ -23,9 +23,14 @@ Original copyright notices and license files are retained.
 The SDK contains third-party source code, precompiled
 libraries, firmware binaries and development utilities.
 
-Redistribution rights have not yet been fully reviewed.
-This repository is intended to remain private during
-development.
+This repository is public. The base, OpenXR806, publishes the same
+vendor sources, precompiled libraries (for example
+`lib/xradio_v3/libwlan.a`) and firmware binaries (for example
+`bin/xradio_v3/wlan_fw.bin`). The XRadio sources carry a BSD-style
+license in their file headers. The precompiled libraries and firmware
+binaries come without a separate license file; their redistribution
+terms still need a review before this SDK becomes an official ESPHome
+dependency.
 
 ## Development status
 

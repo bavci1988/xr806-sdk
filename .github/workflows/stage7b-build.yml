@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 40
     steps:
-      - name: Checkout pinned XR806 SDK (private; isolated)
+      - name: Checkout pinned XR806 SDK (isolated)
         uses: actions/checkout@v7.0.1
         with:
           ref: 963f6f74030bc2fdbf430e66092ca96f6a0c7a6c
