@@ -5,10 +5,20 @@ XR806 SDK supports XR806 series wireless MCUs.
 
 ## Configuration
 
-- Edit "gcc.mk" to define GCC path to your own path, eg.
+- Install an ARM GNU embedded cross-compiler and make sure `arm-none-eabi-gcc`
+  and `arm-none-eabi-g++` are available on `PATH`.
+  On Ubuntu 24.04, for example:
+
+```sh
+sudo apt-get install gcc-arm-none-eabi binutils-arm-none-eabi \
+  libnewlib-arm-none-eabi libstdc++-arm-none-eabi-newlib
 ```
-  CC_DIR = ~/tools/gcc-arm-none-eabi-8-2019-q3-update/bin
-```
+
+- The Makefiles automatically discover the compiler's `bin` directory via
+  `command -v arm-none-eabi-gcc`. **Do not edit `gcc.mk` or configure
+  developer-specific home-directory paths.**
+- For an unusual toolchain location, `make CC_DIR=/opt/arm-toolchain/bin`
+  is an optional override; normal WSL/CI/HA builds do not need it.
 
 
 ## Building
