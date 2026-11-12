@@ -194,8 +194,11 @@ jobs:
           XR806_SDK_EXPECTED_COMMIT: ${{ github.sha }}
         run: |
           set -euo pipefail
-          export CC_DIR="$(dirname "$(command -v arm-none-eabi-gcc)")"
-          echo "Using ARM GCC toolchain: $CC_DIR"
+          # Exercise the SDK's normal, portable PATH-based compiler discovery.
+          # The build must not depend on CC_DIR injected by CI or a user's shell.
+          unset CC_DIR
+          echo "ARM GCC on PATH: $(command -v arm-none-eabi-gcc)"
+          echo "ARM G++ on PATH: $(command -v arm-none-eabi-g++)"
           /opt/esphome-venv/bin/python -m esphome compile ci-tests/xr806_trv16_uart0_lowpower_test.yaml
           /opt/esphome-venv/bin/python -m esphome compile ci-tests/xr806_irq_linkprobe.yaml
           /opt/esphome-venv/bin/python -m esphome compile ci-tests/xr806_wlan_smoke.yaml
