@@ -64,6 +64,10 @@ int main() {
   // With the WLAN link kept up, received network data is an expected wake source; otherwise it is not.
   assert(XR806StandbyCoordinatorState::expected_wake(0, 1u << 17, 10, true));
   assert(!XR806StandbyCoordinatorState::expected_wake(0, 1u << 17, 10));
+  // stay_connected: the WLAN driver refused to suspend because received data was pending.
+  assert(XR806StandbyCoordinatorState::expected_wake(131072, 1u << 17, 10, true));
+  assert(!XR806StandbyCoordinatorState::expected_wake(131072, 1u << 17, 10));
+  assert(!XR806StandbyCoordinatorState::expected_wake(-1, 1u << 16, 10, true));
   assert(!XR806StandbyCoordinatorState::expected_wake(0, (1u << 17) | (1u << 28), 10, true));
 
   state.finished(10500, false);
