@@ -58,7 +58,9 @@ jobs:
             name: xr806-trv16-uart0-lp
           xr806:
             board: wxu
-            lowpower: true
+            # Standby brings in the power management paths of the UART driver
+            standby:
+              enabled: true
           uart:
             id: mcu_uart
             baud_rate: 115200
@@ -87,7 +89,6 @@ jobs:
             name: xr806-wlan-probe
           xr806:
             board: wxu
-            lowpower: true
             wlan:
               dtim: 1
               listen_interval: 8
