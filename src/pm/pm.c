@@ -620,7 +620,7 @@ static int _pm_enter_mode(enum suspend_state_t state)
 		return 0;
 
 	pm_select_mode(state_use);
-	PM_LOGA(PM_SYS" enter mode: %s\n", pm_states[state_use]);
+	PM_LOGN(PM_SYS" enter mode: %s\n", pm_states[state_use]);
 	record = __get_last_record_step();
 	if (record != PM_RESUME_COMPLETE)
 		PM_LOGN("last suspend record:%x\n", record);
