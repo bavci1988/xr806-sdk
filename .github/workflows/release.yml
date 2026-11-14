@@ -1,0 +1,53 @@
+name: Release SDK archive
+
+# ESPHome downloads the SDK as a release archive pinned by tag and SHA-256.
+# Run by hand: it creates the tag on the given commit and attaches the archive.
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag, for example 1.2.2-esphome.1"
+        required: true
+      ref:
+        description: "Commit to release (full SHA)"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out the commit
+        uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ inputs.ref }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Build the archive
+        env:
+          TAG: ${{ inputs.tag }}
+          REF: ${{ inputs.ref }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$REF"
+          name="xr806-sdk-${TAG}.tar.gz"
+          # gzip -n leaves out the time stamp, so the same commit gives the same archive
+          git archive --format=tar --prefix=xr806-sdk/ "$REF" -- . ':!.github' ':!ci' \
+            | gzip -n -9 > "$name"
+          sha256sum "$name" | tee "$name.sha256"
+          stat -c 'size %s' "$name"
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag }}
+          REF: ${{ inputs.ref }}
+        run: |
+          set -euo pipefail
+          name="xr806-sdk-${TAG}.tar.gz"
+          gh release create "$TAG" "$name" "$name.sha256" \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$REF" \
+            --title "XR806 SDK $TAG" \
+            --notes "Source archive of commit $REF for the ESPHome XR806 platform. SHA-256: $(cut -d' ' -f1 "$name.sha256")"
