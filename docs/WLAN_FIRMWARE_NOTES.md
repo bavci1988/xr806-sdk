@@ -55,5 +55,7 @@ repository. Changing firmware behaviour therefore needs a ROM dump first.
   nonce for every frame, so a repeated frame cannot carry more than one valid
   message.
 
-The ESPHome option `xr806: standby: api_keepalive_offload:` (esphome-xr806)
-puts the API connection on this keepalive to observe how the firmware behaves.
+In esphome-xr806, `xr806: experimental_wifi_fw_standby_patch:` is the only
+switch for changing the WLAN firmware's standby behaviour. Today it puts the API
+connection on this keepalive to observe how the firmware behaves; a patched
+`wlan_fw.bin` will be selected by the same switch.
