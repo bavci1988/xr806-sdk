@@ -135,3 +135,13 @@ the three payloads hold further keepalive frames: the host writes them through
 the WLAN RAM window (0x68017E04 + e * 0x84) after the wake MIB and reads one
 word back with MIB 9. With six areas, 30 frames of 23 bytes fit (4 minutes at
 8 s).
+
+### Receive filter while the host sleeps
+
+The receive filter (0x0900A012) passes non-IPv4 frames to the host. IPv4
+packets of a keepalive connection are handled first (ACKs, data). At the end
+(0x0900A20E), while host sleep is set (MIB 0x1079), every other IPv4 packet is
+dropped unless its source matched one of the IPv4 wake filters. So the web
+server, OTA or a new API connection could not wake the host. The patch now
+passes a TCP SYN without ACK to the host (0x0900A216 calls the code next to the
+frame chooser; r6 = IPv4 header, r5 = TCP header there).
