@@ -121,3 +121,17 @@ Original plan:
 - The host wakes on its own timer before the list runs out, reads k from the
   state above, moves lwIP's sequence by k frames and sends the frames the
   firmware did not send itself, so its Noise counter matches Home Assistant's.
+
+### Frame areas and wake pattern table
+
+The wake pattern table (MIB 0x1077, 432 bytes) is copied to 0x0900BE00: three
+entries of 0x84 bytes (`Enable` u16, `PayloadLen` u16, 128 payload bytes), then
+the global `Enable` (0x0900BF8C) and eight IPv4 filters (0x0900BF90). The
+firmware reads an entry's payload only when its `Enable` is set (receive
+filter 0x0900A17A and 0x0900A1EC; the MIB handler clears disabled entries).
+No other code in the patch or the ROM refers to it. esphome-xr806 never enables
+an entry (`wake_on_peer` only uses the global `Enable` and the IPv4 filter), so
+the three payloads hold further keepalive frames: the host writes them through
+the WLAN RAM window (0x68017E04 + e * 0x84) after the wake MIB and reads one
+word back with MIB 9. With six areas, 30 frames of 23 bytes fit (4 minutes at
+8 s).
