@@ -92,7 +92,17 @@ Run-time state per server at 0x0900BBE8 + 0x1C + i*0x24 (WLAN address; M33
 +0xD frame in flight. The number of acknowledged keepalive frames is
 `IP ID - IPIdInit`.
 
-### Planned extension
+### Extension (esphome-xr806, experimental_wifi_fw_standby_patch)
+
+Implemented in `esphome/components/xr806/build_support/wlan_fw_patch.py` and
+`wlan_fw_keepalive.S`; applied at build time to the stock file (SHA-256
+`0d08b6c6…`), nothing patched is stored. The file's checksum is the last word
+of record type 4: all 32-bit words of the file sum to zero. Besides the two
+changes below, data segments from the peer are passed to the host
+(0x0900A14C `beq` -> `bne 0x0900A220`) instead of being acknowledged and
+dropped by the firmware.
+
+Original plan:
 
 - Remove the immediate send at 0x0900A374 so the first frame goes out one
   period after configuration, not while the host suspends the WLAN.
