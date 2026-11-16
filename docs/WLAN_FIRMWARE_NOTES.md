@@ -145,3 +145,7 @@ dropped unless its source matched one of the IPv4 wake filters. So the web
 server, OTA or a new API connection could not wake the host. The patch now
 passes a TCP SYN without ACK to the host (0x0900A216 calls the code next to the
 frame chooser; r6 = IPv4 header, r5 = TCP header there).
+
+Not used for now: passing the SYN made the WLAN core crash during standby
+(driver "fatal error", resume failed at the next timer wake) without any user
+action; the same build without it ran cleanly. The cause is not known yet.
