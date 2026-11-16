@@ -90,7 +90,11 @@ function pointer (0x0900A226). MIBs 0x1076..0x1079 are handled entirely there:
 Run-time state per server at 0x0900BBE8 + 0x1C + i*0x24 (WLAN address; M33
 0x68017C04 + i*0x24): +0 sequence, +4 acknowledgement, +8 IP ID, +0xC retries,
 +0xD frame in flight. The number of acknowledged keepalive frames is
-`IP ID - IPIdInit`.
+`(sequence - TcpSeqInit) / PayloadLen`. The IP ID is no frame counter: it is
+also increased by 0x09009FE6, which acknowledges data from the peer and is
+called by the receive filter (0x0900A15A) and the wake pattern match
+(0x0900A1C2). Verified on hardware: after 2 acknowledged frames the IP ID had
+grown by 11.
 
 ### Extension (esphome-xr806, experimental_wifi_fw_standby_patch)
 
@@ -99,8 +103,13 @@ Implemented in `esphome/components/xr806/build_support/wlan_fw_patch.py` and
 `0d08b6c6…`), nothing patched is stored. The file's checksum is the last word
 of record type 4: all 32-bit words of the file sum to zero. Besides the two
 changes below, data segments from the peer are passed to the host
-(0x0900A14C `beq` -> `bne 0x0900A220`) instead of being acknowledged and
-dropped by the firmware.
+(0x0900A14E `movs r2,#0` -> `b 0x0900A220`, after the `beq` that skips
+segments without data) instead of being acknowledged and dropped by the
+firmware. A first version replaced that `beq` with `bne 0x0900A220`, which sent
+a firmware acknowledgement for every pure ACK from the peer.
+
+The frame chooser uses k = `(sequence - TcpSeqInit) / PayloadLen`; the first
+version used the IP ID and chose wrong frames on hardware.
 
 Original plan:
 
