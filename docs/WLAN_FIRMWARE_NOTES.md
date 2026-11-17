@@ -149,3 +149,18 @@ frame chooser; r6 = IPv4 header, r5 = TCP header there).
 Not used for now: passing the SYN made the WLAN core crash during standby
 (driver "fatal error", resume failed at the next timer wake) without any user
 action; the same build without it ran cleanly. The cause is not known yet.
+
+### Timers stalling during standby
+
+ROM timer list: head at 0xFFF01C6C, nodes `{next, prev, expiry, callback,
+argument}`, start 0xEDE2 (stops first when `prev` is set, inserts sorted with
+interrupts off, programs the hardware timer when the node becomes the head),
+stop 0xEEB4, init 0x195B0 (does not unlink). Time is `[0x0AC00004] +
+[0xFFF0560C]`. Stopping the head timer clears the pending-timer flag
+(0xEF4C with 0x10) but does not program the hardware timer for the next node.
+On hardware the keepalive timers occasionally stopped firing while the list
+itself was intact, and the core sometimes no longer answered the host. The
+keepalive's ACK handler stopped the retransmit timer (0x0900A756), usually the
+head, on every ACK; the patch removes that stop, so the timer just expires and
+its handler (0x0900A7A6) returns when nothing is in flight. Not yet confirmed
+on hardware.
