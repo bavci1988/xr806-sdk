@@ -260,6 +260,8 @@ SECTIONS
          */
         EXCLUDE_FILE (*/obj/auto/components/uart/* */obj/auto/components/gpio/*) */obj/auto/components/*.o (.text .text.* .rodata .rodata.*)
         */obj/main.o (.text .text.* .rodata .rodata.*)
+        /* Keepalive hand-over to the WLAN firmware: called before and after standby, never inside it. */
+        */obj/xr_api_keepalive_offload.o (.text .text.* .rodata .rodata.*)
         *libnoise_c.a: (.text .text.* .rodata .rodata.*)
         *libsodium.a: (.text .text.* .rodata .rodata.*)
 
