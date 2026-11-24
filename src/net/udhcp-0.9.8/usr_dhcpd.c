@@ -183,6 +183,16 @@ static void udhcpd_start(void *arg)
 	} else
 		server_config.lease = LEASE_TIME;
 
+	/* The WLAN netif gets a new number with every mode change (e.g. en2 for an AP
+	 * started after STA), so the configured name may not exist. */
+	static char wlan_ifname[6];
+	struct netif *wlan_nif = wlan_netif_get(WLAN_MODE_NONE);
+	if (wlan_nif != NULL) {
+		snprintf(wlan_ifname, sizeof(wlan_ifname), "%c%c%u",
+		         wlan_nif->name[0], wlan_nif->name[1], wlan_nif->num);
+		server_config.interface = wlan_ifname;
+	}
+
 	if (read_interface(server_config.interface, &server_config.ifindex,
 		                 &server_config.server, server_config.arp) < 0) {
 		goto exit_server;
