@@ -15,6 +15,9 @@ Base commit: 3113bbb32f8378206f52d72406aa123a1368bfec
 - TRV16 firmware project
 - ESPHome-compatible startup and linker integration
 - SDK build configuration and compiler adjustments
+- `bin/xradio_v3/boot/xr806/boot_40M_dcdc.bin`: the bootloader for boards with the
+  DCDC power design, built from this SDK with `project/bootloader/gcc/defconfig_dcdc`
+  (`make PRJ=bootloader build`, arm-none-eabi-gcc 10.3)
 
 ## Third-party components
 

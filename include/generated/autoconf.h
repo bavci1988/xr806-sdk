@@ -20,7 +20,10 @@
 #define CONFIG_FLASH_PM_ALLOW_ENTER_PWR_DOWN 1
 #define CONFIG_WLAN_STA 1
 #define CONFIG_LIBC_REDEFINE_GCC_INT32_TYPE 1
+/* LibreTiny: a board with the DCDC power design defines CONFIG_PWR_INTERNAL_DCDC instead */
+#ifndef CONFIG_PWR_INTERNAL_DCDC
 #define CONFIG_PWR_INTERNAL_LDO 1
+#endif
 #define CONFIG_FLASH_ARBIT 1
 #define CONFIG_ROM_XZ 1
 #define CONFIG_BOARD "xr806_wxu"
