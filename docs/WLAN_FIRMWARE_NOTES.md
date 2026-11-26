@@ -146,9 +146,24 @@ server, OTA or a new API connection could not wake the host. The patch now
 passes a TCP SYN without ACK to the host (0x0900A216 calls the code next to the
 frame chooser; r6 = IPv4 header, r5 = TCP header there).
 
-Not used for now: passing the SYN made the WLAN core crash during standby
-(driver "fatal error", resume failed at the next timer wake) without any user
-action; the same build without it ran cleanly. The cause is not known yet.
+A first version made the WLAN core crash during standby and was reverted;
+the later version (SYN alone, not a fragment, to the web server or OTA port,
+since also the native API port) is in use. Later analysis showed that these
+crashes are the general "Device cannot wakeup" hang, which also happens with
+the stock firmware.
+
+### Acknowledgements, FIN and RST
+
+The stock receive filter matches a keepalive server by the two ports only (UDP
+included) and then takes every segment with ACK set for the acknowledgement of
+the frame in flight (0x0900A144 -> 0x0900A720); it never looks at the
+acknowledgement number. A duplicate ACK or a ping from the peer that crossed
+the frame counted a frame that was lost on the air, which was then never sent
+again. The patch (`peer_segment` in `wlan_fw_keepalive.S`, at 0x0900A4C8 in the
+UDP keepalive) counts a frame only when the acknowledgement number is the
+sequence plus `PayloadLen`, passes FIN and RST of a keepalive connection to the
+host and drops segments with the server's ports that are not TCP. Without it a
+FIN or RST from the peer was dropped while the host slept.
 
 ### Timers stalling during standby
 
@@ -162,5 +177,5 @@ On hardware the keepalive timers occasionally stopped firing while the list
 itself was intact, and the core sometimes no longer answered the host. The
 keepalive's ACK handler stopped the retransmit timer (0x0900A756), usually the
 head, on every ACK; the patch removes that stop, so the timer just expires and
-its handler (0x0900A7A6) returns when nothing is in flight. Not yet confirmed
-on hardware.
+its handler (0x0900A7A6) returns when nothing is in flight. That change was
+reverted: the hangs also happened with the stock firmware.
