@@ -257,9 +257,13 @@ SECTIONS
          * The gpio component holds interrupt handlers, and UART is polled on every
          * loop pass, so both stay in RAM. The ESPHome core, GPIO pin, wake and
          * standby objects sit directly in obj/ and are not matched here.
+         * The Tuya low-power host is the exception: it holds the vtable and inline
+         * methods of XR806TuyaLowPowerHost, which run in task context before and
+         * after pm_enter_mode_timeout(), never with the flash off.
          */
         EXCLUDE_FILE (*/obj/auto/components/uart/* */obj/auto/components/gpio/*) */obj/auto/components/*.o (.text .text.* .rodata .rodata.*)
         */obj/main.o (.text .text.* .rodata .rodata.*)
+        */obj/xr_tuya_low_power_host.o (.text .text.* .rodata .rodata.*)
         *libnoise_c.a: (.text .text.* .rodata .rodata.*)
         *libsodium.a: (.text .text.* .rodata .rodata.*)
 
