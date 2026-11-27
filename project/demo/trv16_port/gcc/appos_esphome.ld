@@ -264,6 +264,8 @@ SECTIONS
         */obj/xr_api_keepalive_offload.o (.text .text.* .rodata .rodata.*)
         /* WLAN firmware swap and restart after a hang: main loop only, never inside standby. */
         */obj/xr_wlan_fw_swap.o (.text .text.* .rodata .rodata.*)
+        /* Wake lines from the Tuya MCU's product information: set up once from the main loop. */
+        */obj/xr_tuya_low_power_host.o (.text .text.* .rodata .rodata.*)
         *libnoise_c.a: (.text .text.* .rodata .rodata.*)
         *libsodium.a: (.text .text.* .rodata .rodata.*)
 
