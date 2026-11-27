@@ -266,6 +266,14 @@ SECTIONS
         */obj/xr_wlan_fw_swap.o (.text .text.* .rodata .rodata.*)
         /* Wake lines from the Tuya MCU's product information: set up once from the main loop. */
         */obj/xr_tuya_low_power_host.o (.text .text.* .rodata .rodata.*)
+        /*
+         * Small functions that the compiler emits into RAM objects but that only task context calls:
+         * setup_output_pin() runs in setup(), the others ran from XIP until their callers changed.
+         */
+        *(.text._ZN7esphome16setup_output_pinEPNS_7GPIOPinEb)
+        *(.text._ZNK7esphome4uart18XR806UARTComponent18get_rx_error_countEv)
+        *(.text._ZN7esphome9Component11mark_failedEPKNS_9LogStringE)
+        *(.text._ZNK7esphome5xr80619XR806LowPowerPolicy17standby_requestedEv)
         *libnoise_c.a: (.text .text.* .rodata .rodata.*)
         *libsodium.a: (.text .text.* .rodata .rodata.*)
 
